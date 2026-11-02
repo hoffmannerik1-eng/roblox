@@ -1,0 +1,611 @@
+
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BlockWelt</title>
+
+<style>
+:root {
+ --bg:#0b0d1a;
+ --panel:#171b32;
+ --text:#f2f4ff;
+ --muted:#9aa2c8;
+ --blue:#4f8cff;
+ --purple:#a35bff;
+ --border:rgba(255,255,255,.13);
+}
+*{box-sizing:border-box}
+body{
+ margin:0;background:radial-gradient(circle at top,#20234b,#0b0d1a 65%);
+ color:var(--text);font:16px system-ui,sans-serif;min-height:100vh
+}
+header{
+ position:sticky;top:0;z-index:10;background:#111426ed;
+ backdrop-filter:blur(15px);border-bottom:1px solid var(--border);
+ padding:14px 22px;display:flex;align-items:center;gap:12px;flex-wrap:wrap
+}
+.logo{
+ font-size:23px;font-weight:900;margin-right:auto;
+ background:linear-gradient(120deg,#4f8cff,#b36aff);
+ background-clip:text;color:transparent
+}
+button{
+ cursor:pointer;border:0;border-radius:11px;padding:10px 15px;
+ font:inherit;font-weight:700
+}
+.primary{
+ color:white;background:linear-gradient(120deg,#4f8cff,#a35bff)
+}
+.secondary{background:#292e4c;color:white}
+.danger{background:#542637;color:#ff9ba9}
+button:hover{filter:brightness(1.15)}
+main{max-width:1150px;margin:auto;padding:25px 17px 70px}
+.hero{
+ padding:38px;border-radius:24px;
+ background:linear-gradient(120deg,#386fe8,#963ee5);
+ margin-bottom:25px;box-shadow:0 15px 45px #0005
+}
+.hero h1{font-size:clamp(28px,5vw,45px);margin:0 0 8px}
+.hero p{max-width:550px;opacity:.9}
+.panel{
+ background:var(--panel);border:1px solid var(--border);
+ border-radius:18px;padding:20px;margin-bottom:18px
+}
+.grid{
+ display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));
+ gap:17px
+}
+.card{
+ background:var(--panel);border:1px solid var(--border);
+ border-radius:17px;overflow:hidden;cursor:pointer;transition:.2s
+}
+.card:hover{transform:translateY(-5px);border-color:var(--blue)}
+.thumb{
+ height:135px;display:flex;align-items:center;justify-content:center;
+ font-size:55px;background:linear-gradient(130deg,#3659a8,#793caa);
+ background-position:center;background-size:cover
+}
+.info{padding:14px}
+.info small{color:var(--muted)}
+input,textarea,select{
+ width:100%;padding:12px;border-radius:10px;
+ border:1px solid var(--border);background:#10142a;
+ color:white;font:inherit;margin:6px 0 14px
+}
+textarea{min-height:220px;font-family:monospace;font-size:13px}
+label{font-size:13px;font-weight:800;color:var(--muted)}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:15px}
+iframe{
+ width:100%;height: min(72vh,650px);border:0;
+ border-radius:15px;background:white
+}
+.file{
+ padding:10px;background:#252a45;border-radius:10px;
+ margin:7px 0;display:flex;gap:10px;align-items:center
+}
+.file b{flex:1;overflow:hidden}
+.muted{color:var(--muted)}
+.status{font-size:13px;color:#76e5a5}
+.avatar{display:inline-block;margin-right:5px}
+.hidden{display:none!important}
+@media(max-width:600px){
+ .row{grid-template-columns:1fr}
+ .hero{padding:25px}
+ header{padding:10px}
+}
+</style>
+</head>
+
+<body>
+
+<header>
+ <span class="logo">🧱 BlockWelt</span>
+ <button class="secondary" onclick="home()">Entdecken</button>
+ <button class="secondary" onclick="createPage()">Spiel erstellen</button>
+ <button class="secondary" onclick="avatarPage()">Avatar</button>
+ <button class="secondary" id="loginBtn" onclick="login()">Anmelden</button>
+ <button class="secondary hidden" id="logoutBtn" onclick="logout()">Abmelden</button>
+ <span id="userInfo" class="muted"></span>
+</header>
+
+<main id="app"></main>
+
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+
+<script>
+// ======================================
+// FIREBASE
+// ======================================
+
+const firebaseConfig = {
+ apiKey: "AIzaSyAz3-hfuJ-yAGPBKjnVkSWmtUJKHReSGp8",
+ authDomain: "roblox2-fa121.firebaseapp.com",
+ projectId: "roblox2-fa121",
+ storageBucket: "roblox2-fa121.firebasestorage.app",
+ messagingSenderId: "525999915088",
+ appId: "1:525999915088:web:c6a2c6c2ae044a99ded155"
+};
+
+// HIER DEINE GOOGLE-ADRESSE EINTRAGEN
+const ADMIN_EMAIL = "DEINE_GOOGLE_EMAIL@gmail.com";
+
+firebase.initializeApp(firebaseConfig);
+
+const auth = firebase.auth();
+const db = firebase.firestore();
+
+let user = null;
+let games = [];
+let currentGame = null;
+let files = [];
+let thumbnail = "";
+let avatar = JSON.parse(localStorage.getItem("bwAvatar") || "null") || {
+ name:"Spieler",face:"🤖",color:"#4f8cff"
+};
+
+// ======================================
+// HILFSFUNKTIONEN
+// ======================================
+
+const $ = id => document.getElementById(id);
+
+const esc = value => String(value ?? "").replace(
+ /[&<>"']/g,
+ c => ({
+  "&":"&amp;","<":"&lt;",">":"&gt;",
+  '"':"&quot;","'":"&#39;"
+ }[c])
+);
+
+function isAdmin(){
+ return !!user && user.email?.toLowerCase() === ADMIN_EMAIL.toLowerCase();
+}
+
+function notify(message){
+ alert(message);
+}
+
+function home(){
+ currentGame=null;
+ renderHome();
+}
+
+function login(){
+ const provider = new firebase.auth.GoogleAuthProvider();
+ auth.signInWithPopup(provider).catch(e=>notify(e.message));
+}
+
+function logout(){
+ auth.signOut();
+}
+
+// ======================================
+// ANMELDUNG UND DATENBANK
+// ======================================
+
+auth.onAuthStateChanged(u=>{
+ user=u;
+
+ $("loginBtn").classList.toggle("hidden",!!u);
+ $("logoutBtn").classList.toggle("hidden",!u);
+
+ $("userInfo").textContent = u ? (u.displayName || u.email) : "Gast";
+
+ renderHome();
+});
+
+db.collection("games")
+ .orderBy("created","desc")
+ .onSnapshot(snapshot=>{
+  games=snapshot.docs.map(doc=>({
+   id:doc.id,
+   ...doc.data()
+  }));
+
+  if(currentGame){
+   const updated=games.find(g=>g.id===currentGame);
+   if(updated) currentGame=updated;
+  }
+
+  renderHome();
+ },error=>{
+  console.error(error);
+  $("app").innerHTML=
+   '<div class="panel">Datenbankfehler: '+esc(error.message)+'</div>';
+ });
+
+// ======================================
+// STARTSEITE
+// ======================================
+
+function renderHome(){
+ const app=$("app");
+
+ app.innerHTML=`
+ <section class="hero">
+  <h1>Spiele. Bauen. Teilen.</h1>
+  <p>Entdecke Spiele aus der BlockWelt-Community oder erstelle dein eigenes Spiel.</p>
+  <button class="primary" onclick="createPage()">+ Spiel erstellen</button>
+  <p class="status">● Gemeinsame Spielesammlung</p>
+ </section>
+
+ <input id="search" placeholder="🔍 Spiele suchen..." oninput="filterGames()">
+
+ <h2>Alle Spiele (${games.length})</h2>
+ <div id="gameGrid" class="grid"></div>
+ `;
+
+ filterGames();
+}
+
+function filterGames(){
+ const search=$("search")?.value.toLowerCase() || "";
+ const list=games.filter(g=>
+  (g.title+" "+g.cat+" "+g.author).toLowerCase().includes(search)
+ );
+
+ $("gameGrid").innerHTML=list.length ? list.map(g=>`
+ <div class="card" onclick="playGame('${g.id}')">
+  <div class="thumb" style="${g.thumb?
+   `background-image:url('${g.thumb}')`:""}">
+   ${g.thumb?"":esc(g.icon||"🎮")}
+  </div>
+  <div class="info">
+   <b>${esc(g.title)}</b><br>
+   <small>${esc(g.cat||"Sonstiges")} · von ${esc(g.author||"Spieler")}</small><br>
+   <small>▶ ${g.plays||0} Aufrufe</small>
+  </div>
+ </div>
+ `).join("") : '<div class="panel">Noch keine Spiele gefunden.</div>';
+}
+
+// ======================================
+// SPIEL ÖFFNEN
+// ======================================
+
+async function playGame(id){
+ const g=games.find(x=>x.id===id);
+ if(!g)return;
+
+ currentGame=g;
+
+ $("app").innerHTML=`
+ <button class="secondary" onclick="home()">← Zurück</button>
+ <h2>${esc(g.icon||"🎮")} ${esc(g.title)}</h2>
+ <p class="muted">${esc(g.desc||"")} · von ${esc(g.author||"Spieler")}</p>
+ <iframe id="gameFrame" sandbox="allow-scripts"></iframe>
+ <br><br>
+ <button class="secondary" onclick="document.getElementById('gameFrame').requestFullscreen()">⛶ Vollbild</button>
+ ${(g.ownerUid===user?.uid || isAdmin()) ? `
+ <button class="danger" onclick="deleteGame('${g.id}')">🗑 Spiel löschen</button>
+ `:""}
+ `;
+
+ $("gameFrame").srcdoc=g.html;
+
+ try{
+  await db.collection("games").doc(id).update({
+   plays:firebase.firestore.FieldValue.increment(1)
+  });
+ }catch(e){
+  console.warn("Aufruf konnte nicht gezählt werden:",e);
+ }
+}
+
+// ======================================
+// SPIEL LÖSCHEN
+// ======================================
+
+async function deleteGame(id){
+ const g=games.find(x=>x.id===id);
+ if(!g)return;
+
+ if(g.ownerUid!==user?.uid && !isAdmin()){
+  return notify("Du darfst dieses Spiel nicht löschen.");
+ }
+
+ if(!confirm('Spiel "'+g.title+'" wirklich löschen?'))return;
+
+ try{
+  await db.collection("games").doc(id).delete();
+  currentGame=null;
+  home();
+ }catch(e){
+  notify("Löschen fehlgeschlagen: "+e.message);
+ }
+}
+
+// ======================================
+// DATEIEN HOCHLADEN
+// ======================================
+
+function readFile(file,binary=false){
+ return new Promise((resolve,reject)=>{
+  const reader=new FileReader();
+  reader.onload=()=>resolve(reader.result);
+  reader.onerror=reject;
+  binary?reader.readAsDataURL(file):reader.readAsText(file);
+ });
+}
+
+async function addFiles(input){
+ for(const f of input){
+  const text=/\.(html?|js|css|json|txt|svg|xml)$/i.test(f.name);
+  const data=await readFile(f,!text);
+
+  files=files.filter(x=>x.name!==f.name);
+  files.push({
+   name:f.name,
+   data,
+   text,
+   size:f.size
+  });
+ }
+ createPage();
+}
+
+function addScript(){
+ const name=$("scriptName").value.trim();
+ const data=$("scriptCode").value;
+
+ if(!name || !data)return notify("Dateiname und Code fehlen.");
+
+ files=files.filter(x=>x.name!==name);
+ files.push({
+  name,data,text:true,size:data.length
+ });
+
+ createPage();
+}
+
+// ======================================
+// SPIEL ZUSAMMENBAUEN
+// ======================================
+
+function buildGame(){
+ const by=name=>files.find(f=>
+  f.name===name || f.name.split("/").pop()===name.split("/").pop()
+ );
+
+ let main=files.find(f=>/^index\.html?$/i.test(f.name))
+       ||files.find(f=>/\.html?$/i.test(f.name));
+
+ const safe=s=>s.replace(/<\/script/gi,"<\\/script");
+
+ let output;
+
+ if(main){
+  output=main.data;
+
+  output=output.replace(
+   /<script([^>]*?)\ssrc=["']([^"']+)["']([^>]*)><\/script>/gi,
+   (match,a,name,b)=>{
+    const f=by(name);
+    if(!f||!f.text)return match;
+    return `<script${a}${b}>${safe(f.data)}<\/script>`;
+   }
+  );
+
+  output=output.replace(
+   /<link([^>]*?)href=["']([^"']+\.css)["']([^>]*)>/gi,
+   (match,a,name)=>{
+    const f=by(name);
+    if(!f)return match;
+    return `<style>${f.data}</style>`;
+   }
+  );
+ }else{
+  const css=files.filter(f=>/\.css$/i.test(f.name));
+  const js=files.filter(f=>/\.js$/i.test(f.name));
+
+  output=`<!DOCTYPE html>
+  <html><head><meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <style>body{margin:0;background:#111;color:white}
+  ${css.map(f=>f.data).join("\n")}
+  </style></head><body>
+  <canvas id="game" style="width:100%;height:100vh"></canvas>
+  ${js.map(f=>`<script>${safe(f.data)}<\/script>`).join("\n")}
+  </body></html>`;
+ }
+
+ files.filter(f=>f!==main).forEach(f=>{
+  const uri=f.text
+   ?"data:text/plain;charset=utf-8,"+encodeURIComponent(f.data)
+   :f.data;
+
+  const name=f.name.split("/").pop();
+  output=output.split("./"+name).join(uri);
+  output=output.split(name).join(uri);
+ });
+
+ return output;
+}
+
+// ======================================
+// SPIEL ERSTELLEN
+// ======================================
+
+function createPage(){
+ if(!user){
+  $("app").innerHTML=`
+  <div class="panel">
+   <h2>🔐 Anmeldung erforderlich</h2>
+   <p>Bitte melde dich mit Google an, um Spiele zu veröffentlichen.</p>
+   <button class="primary" onclick="login()">Mit Google anmelden</button>
+  </div>`;
+  return;
+ }
+
+ $("app").innerHTML=`
+ <div class="panel">
+  <h2>🎮 Spiel erstellen</h2>
+
+  <div class="row">
+   <div>
+    <label>SPIELTITEL</label>
+    <input id="title" maxlength="40" placeholder="Mein Spiel">
+    <label>BESCHREIBUNG</label>
+    <input id="description" maxlength="120">
+   </div>
+   <div>
+    <label>ICON</label>
+    <input id="icon" value="🎮" maxlength="4">
+    <label>KATEGORIE</label>
+    <select id="category">
+     <option>Abenteuer</option>
+     <option>Action</option>
+     <option>Puzzle</option>
+     <option>Rennen</option>
+     <option>Sonstiges</option>
+    </select>
+   </div>
+  </div>
+
+  <label>SPIELDATEIEN</label>
+  <input type="file" multiple accept=".html,.js,.css,.json,.txt,.svg,.png,.jpg,.jpeg,.webp,.mp3"
+   onchange="addFiles(this.files)">
+
+  <div id="fileList">
+   ${files.map((f,i)=>`
+    <div class="file">
+     <b>${esc(f.name)}</b>
+     <small>${(f.size/1024).toFixed(1)} KB</small>
+     <button class="danger" onclick="removeFile(${i})">✕</button>
+    </div>
+   `).join("")}
+  </div>
+
+  <details>
+   <summary>Skript direkt schreiben</summary>
+   <label>DATEINAME</label>
+   <input id="scriptName" placeholder="game.js">
+   <label>CODE</label>
+   <textarea id="scriptCode" placeholder="Dein JavaScript-Code..."></textarea>
+   <button class="secondary" onclick="addScript()">Skript hinzufügen</button>
+  </details>
+
+  <br>
+  <label>VORSCHAUBILD</label>
+  <input type="file" accept="image/*" onchange="setThumbnail(this.files[0])">
+
+  <button class="secondary" onclick="previewGame()">👁 Vorschau</button>
+  <button class="primary" onclick="publishGame()">🚀 Veröffentlichen</button>
+  <p id="uploadStatus" class="status"></p>
+  <div id="preview"></div>
+ </div>`;
+}
+
+function removeFile(i){
+ files.splice(i,1);
+ createPage();
+}
+
+async function setThumbnail(file){
+ if(!file)return;
+ if(file.size>300000)return notify("Bild bitte kleiner als 300 KB wählen.");
+
+ thumbnail=await readFile(file,true);
+}
+
+function previewGame(){
+ if(!files.length)return notify("Bitte zuerst Spieldateien hinzufügen.");
+
+ $("preview").innerHTML=
+ '<br><h3>Vorschau</h3><iframe id="previewFrame"></iframe>';
+
+ $("previewFrame").srcdoc=buildGame();
+}
+
+// ======================================
+// SPIEL VERÖFFENTLICHEN
+// ======================================
+
+async function publishGame(){
+ if(!user)return notify("Bitte zuerst anmelden.");
+
+ const title=$("title").value.trim();
+ if(!title)return notify("Bitte einen Titel eingeben.");
+ if(!files.length)return notify("Bitte mindestens eine Datei hinzufügen.");
+
+ let html;
+
+ try{
+  html=buildGame();
+ }catch(e){
+  return notify("Fehler beim Zusammenbauen: "+e.message);
+ }
+
+ if(html.length>650000){
+  return notify("Das Spiel ist zu groß. Bitte Dateien oder Bilder verkleinern.");
+ }
+
+ const status=$("uploadStatus");
+ status.textContent="Spiel wird gespeichert...";
+
+ const game={
+  title,
+  desc:$("description").value.trim(),
+  icon:$("icon").value||"🎮",
+  cat:$("category").value,
+  html,
+  thumb:thumbnail,
+  author:user.displayName||user.email,
+  ownerUid:user.uid,
+  created:Date.now(),
+  plays:0
+ };
+
+ try{
+  await db.collection("games").add(game);
+
+  files=[];
+  thumbnail="";
+  status.textContent="✓ Spiel erfolgreich veröffentlicht!";
+
+  setTimeout(home,700);
+ }catch(e){
+  status.textContent="Fehler: "+e.message;
+ }
+}
+
+// ======================================
+// AVATAR
+// ======================================
+
+function avatarPage(){
+ $("app").innerHTML=`
+ <div class="panel">
+  <h2>Dein Avatar</h2>
+  <div style="font-size:65px">${esc(avatar.face)}</div>
+  <label>NAME</label>
+  <input id="avatarName" maxlength="20" value="${esc(avatar.name)}">
+  <label>GESICHT</label>
+  <select id="avatarFace">
+   ${["🤖","😀","😎","😈","😛","👽"].map(x=>
+    `<option ${x===avatar.face?"selected":""}>${x}</option>`
+   ).join("")}
+  </select>
+  <button class="primary" onclick="saveAvatar()">Speichern</button>
+ </div>`;
+}
+
+function saveAvatar(){
+ avatar.name=$("avatarName").value.trim()||"Spieler";
+ avatar.face=$("avatarFace").value;
+ localStorage.setItem("bwAvatar",JSON.stringify(avatar));
+ notify("Avatar gespeichert!");
+}
+
+// ======================================
+// START
+// ======================================
+
+renderHome();
+</script>
+</body>
+</html>
