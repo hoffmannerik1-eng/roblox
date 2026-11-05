@@ -194,6 +194,21 @@ body.game-open .ge-dock-toggle{top:60px;right:16px;transform:none;writing-mode:h
 @media(max-width:760px){.ge-dock-toggle{right:8px;padding:11px 9px}.ge-dock{width:min(340px,94vw)}}
 
 .lobby-wrap{max-width:1000px;margin:0 auto}.lobby-hero{margin-bottom:20px}.lobby-chat-panel{padding:clamp(14px,3vw,24px);border-color:#8b5cf655}.lobby-chat-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}.lobby-chat-heading h2{margin:5px 0 0;font-size:23px}.lobby-messages{height:min(52vh,520px);min-height:260px;background:#0d0e19;border:1px solid #ffffff12;border-radius:14px}.lobby-compose{padding:12px 0 6px;border:0}.lobby-compose input{font-size:14px}.lobby-compose button{padding:0 20px;font-size:13px}.lobby-chat-panel .ge-chat-note{padding:5px 0 0}.lobby-hero h1{font-size:clamp(42px,7vw,66px)}@media(max-width:760px){.lobby-messages{height:48vh;min-height:220px}.lobby-compose button{padding:0 13px}}
+
+.vn-featured{position:relative;display:flex;align-items:flex-end;min-height:310px;margin:0 0 22px;overflow:hidden;border:1px solid rgba(166,147,255,.32);border-radius:25px;background:#17172b;cursor:pointer;isolation:isolate;box-shadow:0 20px 55px #0008;transition:transform .22s,border-color .22s}
+.vn-featured:hover{transform:translateY(-3px);border-color:#9c83ff}
+.vn-featured-image,.vn-featured-shade{position:absolute;inset:0;z-index:-1}
+.vn-featured-image img{width:100%;height:100%;object-fit:cover;display:block}
+.vn-featured-fallback{height:100%;display:grid;place-items:center;font-size:110px;background:radial-gradient(circle at 70% 25%,#51418a,#17172b 65%)}
+.vn-featured-shade{background:linear-gradient(90deg,rgba(8,9,18,.97) 0%,rgba(8,9,18,.78) 48%,rgba(8,9,18,.08) 100%),linear-gradient(0deg,rgba(8,9,18,.55),transparent 60%)}
+.vn-featured-copy{max-width:690px;padding:clamp(24px,5vw,48px);color:#fff}
+.vn-featured-copy .vn-kicker{display:inline-block;padding:7px 11px;border:1px solid #c3b5ff66;border-radius:99px;background:#6d52c344;color:#e2d9ff;font-size:10px;font-weight:900;letter-spacing:1.5px}
+.vn-featured-copy h2{margin:14px 0 8px;font-size:clamp(30px,5vw,52px);line-height:1.05;letter-spacing:-1.5px}
+.vn-featured-copy p{max-width:520px;margin:0;color:#d5d2e7;line-height:1.6}
+.vn-featured-meta{display:flex;gap:16px;flex-wrap:wrap;margin-top:15px;color:#c7c3dc;font-size:12px}
+.vn-featured-cta{display:inline-block;margin-top:20px;padding:11px 16px;border-radius:11px;background:linear-gradient(110deg,#8061f1,#5d83ee);font-size:13px;font-weight:800}
+@media(max-width:650px){.vn-featured{min-height:270px}.vn-featured-shade{background:linear-gradient(0deg,rgba(8,9,18,.98),rgba(8,9,18,.55) 70%,rgba(8,9,18,.12))}.vn-featured-copy{padding:22px}.vn-featured-fallback{font-size:82px}}
+
 </style></head><body>
 <header><span class="logo"><span class="logo-mark">G</span> GAME ENGINE</span><nav id="nav"></nav><span class="me" id="me"></span></header>
 <main id="app"></main>
@@ -412,10 +427,14 @@ function render(){
   const categories=['Alle',...new Set(games.map(g=>g.cat||'Sonstiges'))];
   const l=games.filter(g=>(g.title+' '+(g.cat||'')+' '+(g.author||'')).toLowerCase().includes(q.toLowerCase())&&(activeCategory==='Alle'||(g.cat||'Sonstiges')===activeCategory));
   const popular=[...l].sort((x,y)=>(Number(y.plays)||0)-(Number(x.plays)||0));
-  const newest=[...l].sort((x,y)=>(Number(y.created)||0)-(Number(x.created)||0));
+  const featured=[...games].sort((x,y)=>(Number(y.plays)||0)-(Number(x.plays)||0))[0];
   const cards=arr=>arr.map(g=>`<div class="card" onclick="play('${g.id}')"><div class="th" style="background:${g.thumb?`url(${g.thumb}) center/cover`:col(g.title)}">${g.thumb?'':esc(g.icon||'🎮')}<i>${esc(g.cat||'Sonstiges')}</i></div><div class="in"><b>${esc(g.title)}</b><div class="game-meta"><small>von ${esc(g.author||'Spieler')}</small><small>▶ ${Number(g.plays)||0} Aufrufe</small></div></div></div>`).join('');
   a.innerHTML=`<div class="vn-home">
-<section class="vn-hero">
+ ${featured?`<section class="vn-featured" onclick="play('${featured.id}')" role="button" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();play('${featured.id}')}">
+  <div class="vn-featured-image">${featured.thumb?`<img src="${featured.thumb}" alt="">`:`<div class="vn-featured-fallback">${esc(featured.icon||'🎮')}</div>`}</div>
+  <div class="vn-featured-shade"></div><div class="vn-featured-copy"><span class="vn-kicker">★ MEISTGESPIELTES GAME</span><h2>${esc(featured.title)}</h2><p>${esc(featured.desc||'Das aktuell meistgespielte Spiel auf GAME ENGINE.')}</p><div class="vn-featured-meta"><span>▶ ${Number(featured.plays)||0} Aufrufe</span><span>${esc(featured.author||'Community')}</span></div><span class="vn-featured-cta">Jetzt spielen&nbsp; →</span></div>
+ </section>`:''}
+ <section class="vn-hero">
  <div class="vn-eyebrow"><span class="vn-live"></span> DEINE GAMING-PLATTFORM</div>
  <h1>Was möchtest du <span>heute spielen?</span></h1>
  <p>Entdecke neue Games aus der Community oder bring deine eigene Spielidee zum Leben.</p>
@@ -428,9 +447,7 @@ function render(){
  <div class="vn-categories"><div class="category-pills">${categories.map(c=>`<button class="${activeCategory===c?'active':''}" onclick="activeCategory='${esc(c)}';render()">${c==='Alle'?'✦':'▣'} ${esc(c)}</button>`).join('')}</div><button class="vn-reset" onclick="q='';activeCategory='Alle';render()">Filter zurücksetzen ↺</button></div>
  <div class="vn-section-head vn-shelf"><div><span class="vn-kicker">COMMUNITY FAVORITEN</span><h2>Gerade beliebt <span class="vn-flame">✦</span></h2><p>Die meistgespielten Games auf GAME ENGINE.</p></div><span class="vn-count">${popular.length} Spiele</span></div>
  ${popular.length?`<div class="grid">${cards(popular)}</div>`:'<div class="vn-empty"><div>✦</div><b>Noch keine Spiele in dieser Kategorie</b><p>Wähle eine andere Kategorie oder veröffentliche dein erstes Game.</p><button class="btn" onclick="go(\'up\')">Spiel erstellen →</button></div>'}
- <div class="vn-section-head vn-shelf"><div><span class="vn-kicker">FRISCH VERÖFFENTLICHT</span><h2>Neu in der Community</h2><p>Entdecke die neuesten Kreationen.</p></div></div>
- ${newest.length?`<div class="grid">${cards(newest)}</div>`:'<div class="vn-empty vn-empty-small">Hier erscheinen neue Spiele, sobald sie veröffentlicht werden.</div>'}
-</section>
+ </section>
 <section class="vn-create-banner"><div><span class="vn-kicker">DEINE IDEE. DEIN SPIEL.</span><h2>Bereit, etwas Eigenes zu erschaffen?</h2><p>Veröffentliche dein Spiel und werde Teil der GAME-ENGINE-Community.</p></div><button class="btn" onclick="go('up')">Jetzt Spiel erstellen <span>→</span></button><div class="vn-banner-orb">✦</div></section>
 </div>`;
  }
