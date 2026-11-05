@@ -263,43 +263,55 @@ async function addF(fl){for(const f of fl){const tx=/\.(html?|js|css|json|txt|sv
 function addS(){const n=$('#sn').value.trim(),c=$('#sc').value;if(!n||!c)return;files=files.filter(x=>x.name!=n);files.push({name:n,size:c.length,t:'text',data:c});drawUp()}
 async function setTh(f){if(!f)return;const u=await rd(f,1);const im=new Image();im.onload=()=>{const c=document.createElement('canvas');c.width=320;c.height=180;c.getContext('2d').drawImage(im,0,0,320,180);thumb=c.toDataURL('image/jpeg',.7);drawUp()};im.src=u}
 function bundle(){
- const by=n=>files.find(f=>f.name==n||f.name.split('/').pop()==n.split('/').pop());
- let h=files.find(f=>/^index\.html?$/i.test(f.name))||files.find(f=>/\.html?$/i.test(f.name));const used=new Set();let out;
- const sj=s=>s.replace(/<\/script/gi,'<\\/script');
- if(h){used.add(h.name);out=h.data;
-  out=out.replace(/<script([^>]*?)\ssrc=["']([^"']+)["']([^>]*)><\/script>/gi,(m,a,s,b)=>{const f=by(s);if(!f||f.t!='text')return m;used.add(f.name);return `<script${a}${b}>${sj(f.data)}<\/script>`});
-  out=out.replace(/<link([^>]*?)href=["']([^"']+\.css)["']([^>]*)>/gi,(m,a,s)=>{const f=by(s);if(!f)return m;used.add(f.name);return `<style>${f.data}</style>`})}
- else{const cs=files.filter(f=>/\.css$/i.test(f.name)),js=files.filter(f=>/\.js$/i.test(f.name));cs.concat(js).forEach(f=>used.add(f.name));
-  out=`<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>body{margin:0;background:#111;color:#fff;font-family:sans-serif}${cs.map(f=>f.data).join('\n')}
-.admin-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;margin:16px 0}
-.admin-stat{padding:18px;border:1px solid var(--bd);border-radius:16px;background:var(--sf)}
-.admin-stat strong{display:block;font-size:28px;margin-top:5px}
-.admin-user{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;padding:13px 0;border-bottom:1px solid var(--bd)}
-.admin-user:last-child{border:0}.admin-user .details{min-width:160px;flex:1}.admin-user .actions{display:flex;gap:7px;flex-wrap:wrap}
-.admin-lock{max-width:430px;margin:50px auto;text-align:center}.admin-lock .lock-icon{font-size:48px;margin-bottom:10px}
-.danger{background:linear-gradient(135deg,#ff526b,#b91c3c)!important;color:#fff!important}
-/* BlockWelt Gaming-Portal */
-.home-top{display:grid;grid-template-columns:1.35fr .65fr;gap:18px;margin-bottom:22px}
-.hero{min-height:250px;display:flex;flex-direction:column;justify-content:center;padding:clamp(24px,4vw,42px);background:radial-gradient(circle at 85% 20%,#ffffff35,transparent 24%),linear-gradient(120deg,#273caa,#773fd0 58%,#e34e9a);}
-.hero h1{font-size:clamp(32px,5vw,54px);line-height:1.02;max-width:620px}.hero p{font-size:16px;max-width:540px}
-.hero-side{border-radius:24px;padding:22px;background:linear-gradient(145deg,#182345,#111629);border:1px solid #ffffff20;display:flex;flex-direction:column;justify-content:space-between;min-height:250px;box-shadow:0 18px 45px #0003}
-.hero-side .big{font-size:54px;filter:drop-shadow(0 10px 14px #0008)}
-.home-tools{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:18px 0}
-.home-tools input{flex:1;min-width:220px;margin:0;background:var(--sf2)}
-.category-pills{display:flex;gap:8px;overflow:auto;padding:4px 0 14px}
-.category-pills button{white-space:nowrap;border:1px solid var(--bd);background:var(--sf);color:var(--mu);border-radius:999px;padding:9px 15px;font:inherit;font-weight:700;cursor:pointer}
-.category-pills button.active,.category-pills button:hover{background:var(--g);color:white;border-color:transparent}
-.shelf-head{display:flex;align-items:end;justify-content:space-between;gap:12px;margin:26px 0 13px}.shelf-head h2{margin:0;font-size:23px}.shelf-head small{color:var(--mu)}
-.grid{grid-template-columns:repeat(auto-fill,minmax(235px,1fr));gap:18px}
-.card{border-radius:19px;box-shadow:0 10px 28px #0002}.card:hover{transform:translateY(-5px);box-shadow:0 20px 42px #0004}
-.th{height:155px;font-size:62px}.in{padding:15px}.game-meta{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:8px}.game-meta small{color:var(--mu)}
-.online-dot{display:inline-block;width:9px;height:9px;border-radius:50%;background:#45d483;box-shadow:0 0 12px #45d483;margin-right:7px}
-.online-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px;margin-top:14px}.online-person{display:flex;align-items:center;gap:10px;padding:12px;border:1px solid var(--bd);border-radius:14px;background:var(--sf)}
-.online-person .who{min-width:0;flex:1}.online-person small{display:block;color:var(--mu)}
-@media(max-width:760px){.home-top{grid-template-columns:1fr}.hero-side{min-height:160px}.hero{min-height:230px}header{padding:10px 12px}nav button{padding:8px 10px}}
-</style></head><body><canvas id="game" style="display:block;width:100%;height:100vh"></canvas>${js.map(f=>`<script>${sj(f.data)}<\/script>`).join('')}</body></html>`}
- files.filter(f=>!used.has(f.name)).forEach(f=>{const uri=f.t=='bin'?f.data:'data:text/plain;charset=utf-8,'+encodeURIComponent(f.data);const nm=f.name.split('/').pop();out=out.split('./'+nm).join(uri).split(nm).join(uri)});
- return out}
+ const norm=p=>{try{p=decodeURIComponent(p)}catch(e){}return String(p||'').split(/[?#]/)[0].replace(/\\/g,'/').replace(/^\.?\//,'').replace(/^\/+/,'')};
+ const findFile=ref=>{
+  const key=norm(ref);if(!key||/^(https?:|data:|blob:|javascript:|\/\/)/i.test(key))return null;
+  let f=files.find(x=>norm(x.name)===key);
+  if(f)return f;
+  const base=key.split('/').pop(),matches=files.filter(x=>norm(x.name).split('/').pop()===base);
+  return matches.length===1?matches[0]:null;
+ };
+ const used=new Set(),scriptSafe=x=>String(x).replace(/<\/script/gi,'<\\/script');
+ const asUri=f=>f.t==='bin'?f.data:'data:text/plain;charset=utf-8,'+encodeURIComponent(f.data);
+ const rewriteCss=css=>String(css).replace(/url\(\s*(['"]?)(?!data:|https?:|\/\/|#)([^)'"]+)\1\s*\)/gi,(m,q,path)=>{
+  const f=findFile(path);if(!f)return m;used.add(f.name);return 'url("'+asUri(f)+'")';
+ });
+ const rewriteAttrs=html=>String(html).replace(/\b(src|href|poster)=("([^"]*)"|'([^']*)')/gi,(m,attr,quoted,dq,sq)=>{
+  const value=dq??sq;
+  if(!value||/^(https?:|data:|blob:|javascript:|\/\/|#|mailto:)/i.test(value))return m;
+  const f=findFile(value);if(!f)return m;
+  used.add(f.name);
+  if(/\.css(?:[?#].*)?$/i.test(value)&&attr.toLowerCase()==='href'&&f.t==='text')return '<style>'+rewriteCss(f.data)+'</style>';
+  if(/\.js(?:[?#].*)?$/i.test(value)&&attr.toLowerCase()==='src'&&f.t==='text')return '<script>'+scriptSafe(f.data)+'</script>';
+  return attr+'="'+asUri(f)+'"';
+ });
+ let htmlFile=files.find(f=>/^index\.html?$/i.test(f.name))||files.find(f=>/\.html?$/i.test(f.name));
+ let out='';
+ if(htmlFile){
+  used.add(htmlFile.name);out=htmlFile.data;
+  out=out.replace(/<script\b([^>]*?)\bsrc=(["'])([^"']+)\2([^>]*)>\s*<\/script>/gi,(m,before,q,src,after)=>{
+   const f=findFile(src);if(!f||f.t!=='text'||! /\.m?js(?:[?#].*)?$/i.test(src))return m;
+   used.add(f.name);
+   if(/\btype\s*=\s*["']module["']/i.test(before+' '+after))return m;
+   return '<script'+before+after+'>'+scriptSafe(f.data)+'</script>';
+  });
+  out=out.replace(/<link\b([^>]*?)\bhref=(["'])([^"']+\.css(?:[?#][^"']*)?)\2([^>]*)>/gi,(m,b,q,href,a)=>{
+   const f=findFile(href);if(!f||f.t!=='text')return m;
+   used.add(f.name);return '<style>'+rewriteCss(f.data)+'</style>';
+  });
+  out=rewriteAttrs(out);
+ }else{
+  const css=files.filter(f=>/\.css$/i.test(f.name)&&f.t==='text');
+  const js=files.filter(f=>/\.js$/i.test(f.name)&&f.t==='text');
+  css.concat(js).forEach(f=>used.add(f.name));
+  out='<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>html,body{margin:0;min-height:100%;background:#111;color:#fff;font-family:system-ui,sans-serif}canvas{display:block;max-width:100%}'+css.map(f=>rewriteCss(f.data)).join('\n')+'</style></head><body><canvas id="game" style="display:block;width:100%;height:100vh"></canvas>'+js.map(f=>'<script>'+scriptSafe(f.data)+'</script>').join('')+'</body></html>';
+ }
+ // Nur echte HTML-/CSS-Dateiverweise ersetzen; niemals Dateinamen pauschal im JavaScript-Text austauschen.
+ out=out.replace(/url\(\s*(['"]?)(?!data:|https?:|\/\/|#)([^)'"]+)\1\s*\)/gi,(m,q,path)=>{
+  const f=findFile(path);if(!f)return m;used.add(f.name);return 'url("'+asUri(f)+'")';
+ });
+ return out;
+}
 function prev(){if(!files.length){msg='Füge erst Dateien oder Skripte hinzu';return drawUp()}$('#pv').innerHTML='<br><iframe sandbox="allow-scripts" id="pf"></iframe>';$('#pf').srcdoc=bundle()}
 async function saveAv(){try{if(!uid)throw new Error('Noch nicht mit Firebase verbunden');await db.doc(`users/${uid}`).set(av,{merge:true});$('#ok').textContent='Gespeichert ✓'}catch(e){$('#ok').textContent='Fehler: '+e.message}}
 let saveTimer=null;
