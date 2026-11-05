@@ -193,6 +193,7 @@ main{max-width:1320px;padding:36px clamp(16px,4vw,54px) 80px}.vn-home{max-width:
 body.game-open .ge-dock-toggle{top:60px;right:16px;transform:none;writing-mode:horizontal-tb}
 @media(max-width:760px){.ge-dock-toggle{right:8px;padding:11px 9px}.ge-dock{width:min(340px,94vw)}}
 
+.lobby-wrap{max-width:1000px;margin:0 auto}.lobby-hero{margin-bottom:20px}.lobby-chat-panel{padding:clamp(14px,3vw,24px);border-color:#8b5cf655}.lobby-chat-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}.lobby-chat-heading h2{margin:5px 0 0;font-size:23px}.lobby-messages{height:min(52vh,520px);min-height:260px;background:#0d0e19;border:1px solid #ffffff12;border-radius:14px}.lobby-compose{padding:12px 0 6px;border:0}.lobby-compose input{font-size:14px}.lobby-compose button{padding:0 20px;font-size:13px}.lobby-chat-panel .ge-chat-note{padding:5px 0 0}.lobby-hero h1{font-size:clamp(42px,7vw,66px)}@media(max-width:760px){.lobby-messages{height:48vh;min-height:220px}.lobby-compose button{padding:0 13px}}
 </style></head><body>
 <header><span class="logo"><span class="logo-mark">G</span> GAME ENGINE</span><nav id="nav"></nav><span class="me" id="me"></span></header>
 <main id="app"></main>
@@ -344,6 +345,23 @@ function showLoadError(message){
 let dbg=[],stat=[],loc=[];function setG(a){dbg=a;games=dbg.concat(loc,stat.filter(s=>!dbg.some(d=>d.id==s.id)))}
 async function exp(){const data=JSON.stringify(games.map((g,i)=>({...g,id:g.id||'s'+i})));try{const d=await claude.use('downloads');if(d){await d.save({filename:'games.json',data});return}}catch(e){}const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([data],{type:'application/json'}));a.download='games.json';a.click()}
 
+let lobbyChatUnsub=null;
+function stopLobbyChat(){if(lobbyChatUnsub){lobbyChatUnsub();lobbyChatUnsub=null;}}
+function startLobbyChat(){
+ if(!db||!uid){const st=$('#lobbyChatStatus');if(st)st.textContent='Chat benötigt eine Firebase-Verbindung.';return;}
+ stopLobbyChat();const box=$('#lobbyChatMessages');if(box)box.innerHTML='<div class="ge-chat-empty">Nachrichten werden geladen…</div>';
+ lobbyChatUnsub=db.collection('lobbyChat').orderBy('created','desc').limit(100).onSnapshot(snap=>{
+  const el=$('#lobbyChatMessages');if(!el)return;const rows=snap.docs.slice().reverse();
+  el.innerHTML=rows.length?rows.map(doc=>{const d=doc.data()||{};return '<div class="ge-chat-msg"><b>'+esc(d.name||'Spieler')+'</b>'+esc(d.text||'')+'</div>';}).join(''):'<div class="ge-chat-empty">Noch keine Nachrichten. Begrüße die Community!</div>';
+  el.scrollTop=el.scrollHeight;const st=$('#lobbyChatStatus');if(st)st.textContent='';
+ },err=>{const st=$('#lobbyChatStatus');if(st)st.textContent='Lobby-Chat nicht verfügbar: '+err.message;});
+}
+async function sendLobbyChat(event){
+ if(event)event.preventDefault();const input=$('#lobbyChatInput'),status=$('#lobbyChatStatus'),value=(input?.value||'').trim();if(!value)return;
+ if(!db||!uid){if(status)status.textContent='Chat ist gerade nicht verbunden.';return;}if(value.length>300){if(status)status.textContent='Maximal 300 Zeichen.';return;}
+ try{await db.collection('lobbyChat').add({uid,name:String(av.name||'Spieler').slice(0,20),text:value.slice(0,300),created:firebase.firestore.FieldValue.serverTimestamp()});if(input)input.value='';if(status)status.textContent='';}
+ catch(e){if(status)status.textContent='Senden fehlgeschlagen: '+e.message;}
+}
 let gameChatUnsub=null,gameChatId=null;
 function toggleGameDock(force){const el=$('#geDock');if(!el)return;const open=typeof force==='boolean'?force:!el.classList.contains('open');el.classList.toggle('open',open);$('#geDockToggle').setAttribute('aria-expanded',String(open));}
 function dockGo(target){toggleGameDock(false);if(target==='admin'&&!isAdminUser()){go('admin');return;}if(target==='home'&&view==='play')exitGame();else go(target);}
@@ -387,7 +405,7 @@ async function sendGameChat(event){
 }
 
 function render(){
- $('#nav').innerHTML=[['home','Entdecken'],['avatar','Avatar'],['up','Spiel erstellen'],['admin','🔐 Admin']].map(([k,t])=>`<button class="${view==k?'on':''}" onclick="go('${k}')">${t}</button>`).join('');
+ $('#nav').innerHTML=[['home','Entdecken'],['lobby','Lobby-Chat']].map(([k,t])=>`<button class="${view==k?'on':''}" onclick="go('${k}')">${t}</button>`).join('');
  $('#me').innerHTML=svg(av,18)+`<span>${esc(av.name)}</span>`;
  const a=$('#app');
  if(view=='home'){
@@ -404,11 +422,7 @@ function render(){
  <div class="vn-search"><span class="vn-search-icon">⌕</span><input id="gameSearch" placeholder="Suche Spiele, Genres oder Ersteller …" value="${esc(q)}" oninput="q=this.value;clearTimeout(window.t);window.t=setTimeout(()=>render(),180)"><button class="vn-search-btn" onclick="document.getElementById('gameSearch').focus()">Suchen <span>→</span></button></div>
  <div class="vn-hero-links"><span>Beliebt:</span><button onclick="q='';activeCategory='Alle';render()">Alle Spiele</button><button onclick="activeCategory='Action';q='';render()">Action</button><button onclick="activeCategory='Abenteuer';q='';render()">Abenteuer</button><button onclick="go('up')">Eigenes Spiel erstellen ↗</button></div>
 </section>
-<section class="vn-quick">
- <div class="vn-quick-card"><div class="vn-quick-icon purple">▦</div><div><b>${games.length} Community-Games</b><small>Spiele entdecken und ausprobieren</small></div></div>
- <button class="vn-quick-card" onclick="go('up')"><div class="vn-quick-icon cyan">＋</div><div><b>Spiel veröffentlichen</b><small>Deine Idee mit allen teilen</small></div><span class="vn-arrow">↗</span></button>
- <button class="vn-quick-card" onclick="go('avatar')"><div class="vn-quick-icon pink">◉</div><div><b>Dein Spielerprofil</b><small>Gestalte deinen eigenen Avatar</small></div><span class="vn-arrow">↗</span></button>
-</section>
+
 <section class="vn-discover">
  <div class="vn-section-head"><div><span class="vn-kicker">ENTDECKEN</span><h2>Finde dein nächstes Game</h2><p>Stöbere durch die Spiele der Community.</p></div><span class="vn-count">${l.length} Spiele verfügbar</span></div>
  <div class="vn-categories"><div class="category-pills">${categories.map(c=>`<button class="${activeCategory===c?'active':''}" onclick="activeCategory='${esc(c)}';render()">${c==='Alle'?'✦':'▣'} ${esc(c)}</button>`).join('')}</div><button class="vn-reset" onclick="q='';activeCategory='Alle';render()">Filter zurücksetzen ↺</button></div>
@@ -421,6 +435,10 @@ function render(){
 </div>`;
  }
 
+ else if(view=='lobby'){
+  a.innerHTML='<div class="lobby-wrap"><section class="vn-hero lobby-hero"><div class="vn-eyebrow"><span class="vn-live"></span> GAME ENGINE COMMUNITY</div><h1>Die <span>Lobby</span></h1><p>Triff andere Spieler und chatte live mit allen auf GAME ENGINE.</p></section><section class="panel lobby-chat-panel"><div class="lobby-chat-heading"><div><span class="vn-kicker">GLOBALER CHAT</span><h2>Community-Chat</h2></div><span class="tag">Live</span></div><div class="ge-chat-messages lobby-messages" id="lobbyChatMessages"><div class="ge-chat-empty">Chat wird geladen…</div></div><form class="ge-chat-compose lobby-compose" onsubmit="sendLobbyChat(event)"><input id="lobbyChatInput" maxlength="300" autocomplete="off" placeholder="Schreibe eine Nachricht an alle…" aria-label="Nachricht an die Community"><button type="submit">Senden</button></form><p class="ge-chat-note">Bleib freundlich und teile keine persönlichen Daten. Maximal 300 Zeichen.</p><p id="lobbyChatStatus" class="ge-chat-note"></p></section></div>';
+  startLobbyChat();
+ }
  else if(view=='play'){const g=games.find(x=>x.id==cur);a.innerHTML=g?`<h2>${esc(g.icon)} ${esc(g.title)} <span class="tag">${esc(g.cat)}</span></h2><p class="mu">von ${esc(g.author)} — ${esc(g.desc)}</p><div class="panel" style="margin:12px 0"><b>⭐ Spiel bewerten</b><div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:8px"><select id="voteSelect" style="max-width:150px;margin:0"><option value="0">Bewertung wählen</option>${[1,2,3,4,5].map(n=>`<option value="${n}">${'★'.repeat(n)} (${n}/5)</option>`).join('')}</select><button class="sec" onclick="sendVote()">Bewerten</button><span id="voteInfo" class="mu">Bewertungen werden geladen…</span></div></div><div id="gameShell"><button id="gameExit" title="Spiel verlassen" aria-label="Spiel verlassen" onclick="exitGame()">↩</button><iframe sandbox="allow-scripts allow-forms allow-pointer-lock allow-modals allow-popups allow-popups-to-escape-sandbox" allow="autoplay; fullscreen; gamepad; clipboard-read; clipboard-write" allowfullscreen referrerpolicy="no-referrer" id="fr"></iframe></div><p class="mu" id="saveInfo">Spielstand wird automatisch in Firebase gespeichert, wenn das Spiel localStorage verwendet.</p>`:'Nicht gefunden';if(g){startGame(g);startGameChat(g.id)}}
  else if(view=='admin'){
   if(!isAdminUser()) {a.innerHTML=`<div class="panel admin-lock"><div class="lock-icon">🔒</div><h2>Kein Admin-Zugriff</h2><p class="mu">Dieses Firebase-Konto ist nicht als Administrator freigeschaltet.</p></div>`;}
@@ -573,9 +591,9 @@ async function countRealPlay(id){
   });
  }catch(e){console.warn('Aufruf konnte nicht gespeichert werden:',e);}
 }
-function play(id){const game=games.find(g=>g.id===id);if(!game||!game.html){alert('Dieses Spiel enthält keine spielbare HTML-Datei.');return;}cur=id;view='play';document.body.classList.add('game-open');render();countRealPlay(id);const shell=$('#gameShell');if(shell){shell.classList.add('game-fullscreen');try{if(shell.requestFullscreen){const p=shell.requestFullscreen();if(p&&p.catch)p.catch(()=>{});}}catch(e){console.info('CSS-Vollbild wird verwendet:',e);}}}
+function play(id){stopLobbyChat();const game=games.find(g=>g.id===id);if(!game||!game.html){alert('Dieses Spiel enthält keine spielbare HTML-Datei.');return;}cur=id;view='play';document.body.classList.add('game-open');render();countRealPlay(id);const shell=$('#gameShell');if(shell){shell.classList.add('game-fullscreen');try{if(shell.requestFullscreen){const p=shell.requestFullscreen();if(p&&p.catch)p.catch(()=>{});}}catch(e){console.info('CSS-Vollbild wird verwendet:',e);}}}
 function exitGame(){stopGameChat();toggleGameDock(false);if(document.fullscreenElement&&document.exitFullscreen){document.exitFullscreen().catch(()=>{});}document.body.classList.remove('game-open');const shell=$('#gameShell');if(shell)shell.classList.remove('game-fullscreen');cur=null;view='home';render();}
-function go(v){if(v!=='play')stopGameChat();if(v!=='admin')stopOnlineWatch();if(v!=='play'){document.body.classList.remove('game-open');if(document.fullscreenElement&&document.exitFullscreen)document.exitFullscreen().catch(()=>{});}view=v;render()}
+function go(v){if(v!=='play')stopGameChat();if(v!=='lobby')stopLobbyChat();if(v!=='admin')stopOnlineWatch();if(v!=='play'){document.body.classList.remove('game-open');if(document.fullscreenElement&&document.exitFullscreen)document.exitFullscreen().catch(()=>{});}view=v;render()}
 function unlockAdmin(){const error=$('#adminError');if(!isAdminUser()){if(error)error.textContent='Dieses Konto ist nicht als Administrator eingetragen. Melde dich mit einem der freigeschalteten Admin-Konten an.';return;}const v=$('#adminPass')?.value||'';if(v===ADMIN_PASSWORD){adminUnlocked=true;sessionStorage.setItem('bw_admin_ok','1');render()}else{if(error)error.textContent='Falsches Passwort.';}}
 function lockAdmin(){adminUnlocked=false;sessionStorage.removeItem('bw_admin_ok');stopOnlineWatch();view='home';render()}
 async function loadAdminPlayers(){if(!adminUnlocked||!isAdminUser())return;const el=$('#adminPlayers');if(!el)return;el.textContent='Lade Spieler…';try{const snap=await db.collection('users').get();if(!snap.size){el.textContent='Noch keine Spieler gefunden.';return;}el.innerHTML=snap.docs.map(doc=>{const d=doc.data()||{},name=esc(d.name||'Unbenannt'),banned=!!d.banned,until=Number(d.banUntil||0);const status=banned?(!until?'Dauerhaft gesperrt':until>Date.now()?'Gesperrt bis '+new Date(until).toLocaleString('de-DE'):'Sperre abgelaufen'):'Aktiv';return `<div class="admin-user"><div class="details"><b>${name}</b><br><small class="mu">${esc(doc.id)}</small><br><small class="${banned?'err':'ok'}">${status}</small></div><div class="actions"><select id="ban-${doc.id}" style="width:125px;margin:0"><option value="3600000">1 Stunde</option><option value="86400000">24 Stunden</option><option value="604800000">7 Tage</option><option value="2592000000">30 Tage</option><option value="0">Dauerhaft</option></select><button class="sec danger" onclick="banUser('${doc.id}')">Sperren</button>${banned?`<button class="sec" onclick="unbanUser('${doc.id}')">Entsperren</button>`:''}</div></div>`}).join('');}catch(e){el.textContent='Fehler beim Laden: '+e.message;}}
