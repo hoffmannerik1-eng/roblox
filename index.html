@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="de"><head><meta charset="utf-8"><title>BlockWelt</title>
+<html lang="de"><head><meta charset="utf-8"><title>GAME ENGINE – Deine Gaming-Community</title>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <style>
 :root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);--bg:#0b0d1a;--bg2:#141833;--sf:rgba(255,255,255,.07);--sf2:rgba(255,255,255,.12);--tx:#f2f4ff;--mu:#9aa2c8;--ac:#4f8cff;--ac2:#a35bff;--bd:rgba(255,255,255,.14);--g:linear-gradient(135deg,#4f8cff,#a35bff);color-scheme:dark}
@@ -89,8 +89,58 @@ body.game-open{overflow:hidden}body.game-open header{display:none}body.game-open
 #bwBanNotice h2{margin:8px 0;color:#ff7777}
 #bwBanNotice p{color:#c9ced8;line-height:1.5}
 #bwBanNotice button{margin-top:12px;padding:12px 20px;border:0;border-radius:12px;background:#ff6262;color:#fff;font-weight:800;cursor:pointer}
+
+/* GAME ENGINE — premium neon arcade refresh */
+:root{--bg:#080910;--bg2:#111326;--sf:rgba(18,20,38,.82);--sf2:rgba(31,34,59,.92);--tx:#f7f7ff;--mu:#9ca3c7;--ac:#8b5cf6;--ac2:#22d3ee;--bd:rgba(166,153,255,.17);--g:linear-gradient(115deg,#8b5cf6 0%,#5b5cf6 48%,#22d3ee 100%);color-scheme:dark}
+body{background-color:#080910;background-image:radial-gradient(ellipse at 12% 0%,rgba(111,65,255,.2),transparent 36%),radial-gradient(ellipse at 88% 12%,rgba(34,211,238,.11),transparent 32%),linear-gradient(rgba(255,255,255,.018) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.018) 1px,transparent 1px);background-size:auto,auto,42px 42px,42px 42px;background-attachment:fixed}
+header{padding:13px clamp(14px,3vw,38px);background:rgba(8,9,16,.82);border-bottom:1px solid rgba(139,92,246,.24);box-shadow:0 10px 35px #0005}
+.logo{display:flex;align-items:center;gap:10px;font-size:19px;letter-spacing:1.5px;font-weight:950;background:linear-gradient(100deg,#fff 5%,#b8a4ff 48%,#67e8f9 100%);-webkit-background-clip:text;background-clip:text;color:transparent}
+.logo-mark{display:grid;place-items:center;width:31px;height:31px;border-radius:10px;background:linear-gradient(135deg,#8b5cf6,#22d3ee);color:#fff;font-size:17px;box-shadow:0 0 24px #8b5cf677}
+nav button{font-size:13px;border-radius:11px;padding:9px 13px}
+nav button.on{box-shadow:0 0 22px #8b5cf655}
+.me{background:#15172a;border-color:#8b5cf633}
+main{max-width:1240px;padding:30px 20px 76px}
+.home-top{grid-template-columns:1.55fr .7fr;gap:20px}
+.hero{min-height:310px;border:1px solid #b7a3ff3d;border-radius:28px;padding:clamp(28px,5vw,58px);background:radial-gradient(ellipse at 78% 18%,#a78bfa3a,transparent 28%),radial-gradient(ellipse at 95% 90%,#22d3ee24,transparent 32%),linear-gradient(125deg,#17112f 0%,#211849 48%,#102b3c 100%);box-shadow:0 25px 75px #0008,0 0 55px #7c3aed20;isolation:isolate}
+.hero:after{content:"";position:absolute;width:240px;height:240px;right:-65px;bottom:-115px;border:1px solid #a78bfa55;border-radius:50%;box-shadow:0 0 0 24px #a78bfa0b,0 0 0 48px #a78bfa08;z-index:-1}
+.hero h1{max-width:720px;font-size:clamp(38px,6vw,68px);letter-spacing:-2.6px;line-height:.99;font-weight:950;text-wrap:balance}
+.hero p{color:#d4d1ed;max-width:560px;font-size:16px;line-height:1.7;margin:16px 0 24px}
+.hero .tag{letter-spacing:1.5px;font-size:10px;font-weight:900;padding:7px 11px;border:1px solid #ffffff30}
+.hero .btn{padding:13px 18px;border-radius:13px}
+.hero-side{position:relative;overflow:hidden;border-radius:26px;padding:25px;background:radial-gradient(circle at 80% 10%,#22d3ee22,transparent 35%),linear-gradient(150deg,#171a31,#0d1020);border:1px solid #8b5cf644;box-shadow:0 22px 60px #0007}
+.hero-side:after{content:"";position:absolute;width:190px;height:190px;right:-70px;top:65px;border-radius:50%;border:1px solid #22d3ee33;box-shadow:0 0 0 20px #22d3ee08,0 0 50px #8b5cf622;pointer-events:none}
+.hero-side .tag{color:#b9a7ff;border:1px solid #8b5cf655;background:#8b5cf61a;padding:7px 10px}
+.hero-side .big{font-size:65px;margin:14px 0;filter:drop-shadow(0 8px 22px #8b5cf688)}
+.hero-side b{font-size:19px}
+.home-tools{margin:25px 0 13px}
+.home-tools input{min-height:49px;border-radius:14px;border:1px solid #8b5cf644;background:#101222;box-shadow:inset 0 1px #ffffff08}
+.home-tools input:focus{border-color:#22d3ee;box-shadow:0 0 0 3px #22d3ee20}
+.sec{border-radius:12px;background:#15172b;border-color:#ffffff20}
+.category-pills{padding:10px 0 16px;scrollbar-width:thin}
+.category-pills button{background:#111322;border-color:#ffffff1c;padding:9px 16px;font-size:13px}
+.category-pills button.active,.category-pills button:hover{background:linear-gradient(110deg,#7445df,#287eaa);box-shadow:0 5px 20px #7548df44}
+.shelf-head{margin:30px 0 15px}
+.shelf-head h2{font-size:22px;letter-spacing:-.5px}
+.shelf-head small{font-size:12px}
+.grid{grid-template-columns:repeat(auto-fill,minmax(245px,1fr));gap:17px}
+.card{background:linear-gradient(155deg,rgba(29,31,55,.96),rgba(14,16,29,.96));border:1px solid #ffffff16;border-radius:19px;box-shadow:0 12px 34px #0005}
+.card:hover{border-color:#8b5cf6aa;box-shadow:0 20px 50px #0008,0 0 28px #8b5cf622}
+.th{height:165px;background-color:#171a32!important}
+.in{padding:16px}
+.in>b{font-size:16px;letter-spacing:.1px}
+.game-meta{padding-top:9px;border-top:1px solid #ffffff10}
+.game-meta small{font-size:11px}
+.panel{background:linear-gradient(145deg,rgba(23,25,45,.94),rgba(13,15,27,.94));border-color:#ffffff1c;box-shadow:0 15px 45px #0004}
+.btn{background:linear-gradient(110deg,#8555f5,#5d63ed 55%,#1ebbd1);box-shadow:0 8px 26px #714be655;border-radius:13px}
+.btn:hover{box-shadow:0 12px 32px #714be677}
+.btn.w{background:#f7f4ff;color:#21153f}
+.shelf-head+ .panel{padding:23px;border-color:#8b5cf633}
+.admin-stat,.file,.drop{background:#111426;border-color:#ffffff20}
+input,textarea,select{background:#111426;border-color:#ffffff20}
+@media(max-width:760px){main{padding:18px 13px 55px}.home-top{grid-template-columns:1fr}.hero{min-height:290px;padding:27px 22px}.hero h1{font-size:clamp(37px,11vw,54px)}.hero-side{min-height:175px}.grid{grid-template-columns:repeat(auto-fill,minmax( min(100%,220px),1fr))}header{gap:8px}.logo{font-size:16px}nav{order:3;width:100%;justify-content:space-between}nav button{flex:1;padding:9px 6px;font-size:12px}}
+
 </style></head><body>
-<header><span class="logo">🧱 BlockWelt</span><nav id="nav"></nav><span class="me" id="me"></span></header>
+<header><span class="logo"><span class="logo-mark">G</span> GAME ENGINE</span><nav id="nav"></nav><span class="me" id="me"></span></header>
 <main id="app"></main>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
@@ -128,7 +178,7 @@ function showBanNotice(data){
  if(document.getElementById('bwBanNotice'))return;
  const overlay=document.createElement('div');overlay.id='bwBanNotice';
  const duration=until?'Gesperrt bis '+new Date(until).toLocaleString('de-DE'):'Dauerhaft gesperrt';
- overlay.innerHTML=`<div class="ban-card"><div class="ban-icon">🚫</div><h2>Konto gesperrt</h2><p>Du kannst BlockWelt momentan nicht nutzen.</p><p><b>${esc(duration)}</b></p>${currentBan.reason?`<p>Grund: ${esc(currentBan.reason)}</p>`:''}<button type="button" onclick="dismissBanNotice()">Meldung schließen</button></div>`;
+ overlay.innerHTML=`<div class="ban-card"><div class="ban-icon">🚫</div><h2>Konto gesperrt</h2><p>Du kannst GAME ENGINE momentan nicht nutzen.</p><p><b>${esc(duration)}</b></p>${currentBan.reason?`<p>Grund: ${esc(currentBan.reason)}</p>`:''}<button type="button" onclick="dismissBanNotice()">Meldung schließen</button></div>`;
  document.body.appendChild(overlay);
 }
 function dismissBanNotice(){
@@ -181,7 +231,7 @@ async function init(){
    const profile=await db.doc(`users/${uid}`).get();
    if(profile.exists)av={...av,...profile.data()};
    if(!av.name||av.name==='Spieler'){
-    const entered=prompt('Wie möchtest du in BlockWelt heißen?','Spieler');
+    const entered=prompt('Wie möchtest du auf GAME ENGINE heißen?','Spieler');
     if(entered&&entered.trim()){av.name=entered.trim().slice(0,20);await db.doc(`users/${uid}`).set({name:av.name},{merge:true});}
    }
    startPresence();
@@ -226,21 +276,21 @@ function render(){
   const popular=[...l].sort((x,y)=>(Number(y.plays)||0)-(Number(x.plays)||0));
   const newest=[...l].sort((x,y)=>(Number(y.created)||0)-(Number(x.created)||0));
   const cards=arr=>arr.map(g=>`<div class="card" onclick="play('${g.id}')"><div class="th" style="background:${g.thumb?`url(${g.thumb}) center/cover`:col(g.title)}">${g.thumb?'':esc(g.icon||'🎮')}<i>${esc(g.cat||'Sonstiges')}</i></div><div class="in"><b>${esc(g.title)}</b><div class="game-meta"><small>von ${esc(g.author||'Spieler')}</small><small>▶ ${Number(g.plays)||0} Aufrufe</small></div></div></div>`).join('');
-  a.innerHTML=`<div class="home-top"><section class="hero"><span class="tag" style="background:#ffffff25;color:white;width:max-content">DIE BLOCKWELT-COMMUNITY</span><h1>Entdecke dein nächstes Lieblingsspiel.</h1><p>Spiele coole Community-Games, entdecke neue Welten und veröffentliche deine eigenen Ideen.</p><div><button class="btn w" onclick="document.getElementById('gameSearch').focus()">Spiele entdecken ↓</button> <button class="btn" onclick="go('up')">＋ Spiel veröffentlichen</button></div></section><aside class="hero-side"><div><span class="tag">DEIN NÄCHSTES ABENTEUER</span><div class="big">🎮 🚀</div></div><div><b>${games.length} Community-Spiele</b><p class="mu" style="margin:4px 0 0">Jeden Tag etwas Neues entdecken.</p></div></aside></div>
+  a.innerHTML=`<div class="home-top"><section class="hero"><span class="tag" style="background:#ffffff25;color:white;width:max-content">DIE GAME-ENGINE-COMMUNITY</span><h1>DEINE NÄCHSTE GAMING-WELT WARTET.</h1><p>Entdecke Community-Games, starte neue Abenteuer und veröffentliche deine eigenen Spiele.</p><div><button class="btn w" onclick="document.getElementById('gameSearch').focus()">Spiele entdecken ↓</button> <button class="btn" onclick="go('up')">＋ Spiel veröffentlichen</button></div></section><aside class="hero-side"><div><span class="tag">DEIN NÄCHSTES ABENTEUER</span><div class="big">🎮 🚀</div></div><div><b>${games.length} Community-Spiele</b><p class="mu" style="margin:4px 0 0">Jeden Tag etwas Neues entdecken.</p></div></aside></div>
   <div class="home-tools"><input id="gameSearch" placeholder="🔍 Suche nach Spielen, Kategorien oder Erstellern…" value="${esc(q)}" oninput="q=this.value;clearTimeout(window.t);window.t=setTimeout(()=>render(),180)"><button class="sec" onclick="q='';activeCategory='Alle';render()">Zurücksetzen</button></div>
   <div class="category-pills">${categories.map(c=>`<button class="${activeCategory===c?'active':''}" onclick="activeCategory='${esc(c)}';render()">${c==='Alle'?'✨': '▣'} ${esc(c)}</button>`).join('')}</div>
   <div class="shelf-head"><div><h2>🔥 Gerade beliebt</h2><small>Die meistgespielten Community-Games</small></div><small>${popular.length} Spiele</small></div>
   ${popular.length?`<div class="grid">${cards(popular)}</div>`:'<div class="panel">Noch keine Spiele in dieser Kategorie. Schau später wieder vorbei oder veröffentliche das erste Game!</div>'}
   <div class="shelf-head"><div><h2>✨ Neu dabei</h2><small>Frisch veröffentlichte Spiele</small></div></div>
   ${newest.length?`<div class="grid">${cards(newest)}</div>`:''}
-  <div class="panel" style="margin-top:24px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap"><div><b>Deine Idee gehört in BlockWelt.</b><div class="mu">Baue ein Spiel und teile es mit der Community.</div></div><button class="btn" onclick="go('up')">Jetzt veröffentlichen</button></div>`;
+  <div class="panel" style="margin-top:24px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap"><div><b>Deine Idee gehört auf GAME ENGINE.</b><div class="mu">Erstelle dein eigenes Game und zeig es der Community.</div></div><button class="btn" onclick="go('up')">Jetzt veröffentlichen</button></div>`;
  }
 
  else if(view=='play'){const g=games.find(x=>x.id==cur);a.innerHTML=g?`<h2>${esc(g.icon)} ${esc(g.title)} <span class="tag">${esc(g.cat)}</span></h2><p class="mu">von ${esc(g.author)} — ${esc(g.desc)}</p><div class="panel" style="margin:12px 0"><b>⭐ Spiel bewerten</b><div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:8px"><select id="voteSelect" style="max-width:150px;margin:0"><option value="0">Bewertung wählen</option>${[1,2,3,4,5].map(n=>`<option value="${n}">${'★'.repeat(n)} (${n}/5)</option>`).join('')}</select><button class="sec" onclick="sendVote()">Bewerten</button><span id="voteInfo" class="mu">Bewertungen werden geladen…</span></div></div><div id="gameShell"><button id="gameExit" title="Spiel verlassen" aria-label="Spiel verlassen" onclick="exitGame()">↩</button><iframe sandbox="allow-scripts allow-forms allow-pointer-lock allow-modals allow-popups allow-popups-to-escape-sandbox" allow="autoplay; fullscreen; gamepad; clipboard-read; clipboard-write" allowfullscreen referrerpolicy="no-referrer" id="fr"></iframe></div><p class="mu" id="saveInfo">Spielstand wird automatisch in Firebase gespeichert, wenn das Spiel localStorage verwendet.</p>`:'Nicht gefunden';if(g)startGame(g)}
  else if(view=='admin'){
   if(!isAdminUser()) {a.innerHTML=`<div class="panel admin-lock"><div class="lock-icon">🔒</div><h2>Kein Admin-Zugriff</h2><p class="mu">Dieses Firebase-Konto ist nicht als Administrator freigeschaltet.</p></div>`;}
   else if(!adminUnlocked){a.innerHTML=`<div class="panel admin-lock"><div class="lock-icon">🔐</div><h2>Admin-Zugang</h2><p class="mu">Nur die beiden freigeschalteten Admin-Konten dürfen sich anmelden.</p><input id="adminPass" type="password" placeholder="Admin-Passwort" onkeydown="if(event.key==='Enter')unlockAdmin()"><button class="btn" onclick="unlockAdmin()">Entsperren</button><p id="adminError" class="err"></p></div>`;}
-  else{a.innerHTML=`<div class="hero"><h1>🛡️ BlockWelt Admin</h1><p>Verwalte Spieler, Spiele und den Server.</p><button class="btn w" onclick="lockAdmin()">Abmelden</button></div><div class="admin-grid"><div class="admin-stat"><span class="mu">Spiele</span><strong>${games.length}</strong></div><div class="admin-stat"><span class="mu">Admin-Modus</span><strong style="color:#4fd68c">Aktiv</strong></div><div class="admin-stat"><span class="mu">Deine UID</span><small style="word-break:break-all">${esc(uid||'—')}</small></div></div><div class="panel" style="margin-bottom:16px"><h2>🟢 Wer ist gerade online?</h2><p class="mu">Diese Liste ist nur im Adminbereich sichtbar. Ein Spieler gilt als online, wenn sein letzter Status höchstens zwei Minuten alt ist.</p><div class="admin-stat"><span class="mu">Aktuell online</span><strong id="onlineCount">–</strong></div><div id="onlinePlayers" class="mu" style="margin-top:12px">Online-Liste wird geladen…</div></div><div class="panel"><h2>👥 Spieler verwalten</h2><p class="mu">Sperren gelten dauerhaft oder bis zum gewählten Zeitpunkt.</p><button class="sec" onclick="loadAdminPlayers()">Spielerliste aktualisieren</button><div id="adminPlayers" class="mu" style="margin-top:12px">Lade Spieler…</div></div><div class="panel" style="margin-top:16px"><h2>🎮 Spiele verwalten</h2><div id="adminGames">${games.map(g=>`<div class="admin-user"><div class="details"><b>${esc(g.title)}</b><br><small class="mu">${esc(g.author||'Unbekannt')}</small></div><div class="actions"><button class="sec danger" onclick="deleteGame('${g.id}')">Spiel löschen</button></div></div>`).join('')||'Keine Spiele vorhanden.'}</div></div><div class="panel" style="margin-top:16px"><h2>⚡ Server-Steuerung</h2><p class="mu">Meldet alle Spieler zurück zur Startseite. Es werden keine Konten gelöscht.</p><button class="btn danger" onclick="kickAllPlayers()">Alle Spieler aus Spielen werfen</button></div>`;loadAdminPlayers();watchOnlinePlayers();}
+  else{a.innerHTML=`<div class="hero"><h1>🛡️ GAME ENGINE · ADMIN</h1><p>Verwalte Spieler, Spiele und den Server.</p><button class="btn w" onclick="lockAdmin()">Abmelden</button></div><div class="admin-grid"><div class="admin-stat"><span class="mu">Spiele</span><strong>${games.length}</strong></div><div class="admin-stat"><span class="mu">Admin-Modus</span><strong style="color:#4fd68c">Aktiv</strong></div><div class="admin-stat"><span class="mu">Deine UID</span><small style="word-break:break-all">${esc(uid||'—')}</small></div></div><div class="panel" style="margin-bottom:16px"><h2>🟢 Wer ist gerade online?</h2><p class="mu">Diese Liste ist nur im Adminbereich sichtbar. Ein Spieler gilt als online, wenn sein letzter Status höchstens zwei Minuten alt ist.</p><div class="admin-stat"><span class="mu">Aktuell online</span><strong id="onlineCount">–</strong></div><div id="onlinePlayers" class="mu" style="margin-top:12px">Online-Liste wird geladen…</div></div><div class="panel"><h2>👥 Spieler verwalten</h2><p class="mu">Sperren gelten dauerhaft oder bis zum gewählten Zeitpunkt.</p><button class="sec" onclick="loadAdminPlayers()">Spielerliste aktualisieren</button><div id="adminPlayers" class="mu" style="margin-top:12px">Lade Spieler…</div></div><div class="panel" style="margin-top:16px"><h2>🎮 Spiele verwalten</h2><div id="adminGames">${games.map(g=>`<div class="admin-user"><div class="details"><b>${esc(g.title)}</b><br><small class="mu">${esc(g.author||'Unbekannt')}</small></div><div class="actions"><button class="sec danger" onclick="deleteGame('${g.id}')">Spiel löschen</button></div></div>`).join('')||'Keine Spiele vorhanden.'}</div></div><div class="panel" style="margin-top:16px"><h2>⚡ Server-Steuerung</h2><p class="mu">Meldet alle Spieler zurück zur Startseite. Es werden keine Konten gelöscht.</p><button class="btn danger" onclick="kickAllPlayers()">Alle Spieler aus Spielen werfen</button></div>`;loadAdminPlayers();watchOnlinePlayers();}
  }
  else if(view=='avatar')a.innerHTML=`<div class="row"><div class="panel"><div class="stage">${svg(av,170)}</div></div><div class="panel"><label>Name</label><input value="${esc(av.name)}" maxlength="20" oninput="av.name=this.value;$('#me span').textContent=this.value">
  ${[['skin','Haut'],['hair','Haare'],['shirt','Shirt'],['pants','Hose']].map(([k,t])=>`<label>${t}</label><div>${COLORS.map(c=>`<span class="sw ${av[k]==c?'on':''}" style="background:${c}" onclick="av.${k}='${c}';render()"></span>`).join('')}</div>`).join('')}
