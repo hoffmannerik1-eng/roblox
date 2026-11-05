@@ -282,7 +282,7 @@ function bundle(){
   const f=findFile(value);if(!f)return m;
   used.add(f.name);
   if(/\.css(?:[?#].*)?$/i.test(value)&&attr.toLowerCase()==='href'&&f.t==='text')return '<style>'+rewriteCss(f.data)+'</style>';
-  if(/\.js(?:[?#].*)?$/i.test(value)&&attr.toLowerCase()==='src'&&f.t==='text')return '<script>'+scriptSafe(f.data)+'</script>';
+  if(/\.js(?:[?#].*)?$/i.test(value)&&attr.toLowerCase()==='src'&&f.t==='text')return '<script>'+scriptSafe(f.data)+'<\\/script>';
   return attr+'="'+asUri(f)+'"';
  });
  let htmlFile=files.find(f=>/^index\.html?$/i.test(f.name))||files.find(f=>/\.html?$/i.test(f.name));
@@ -293,7 +293,7 @@ function bundle(){
    const f=findFile(src);if(!f||f.t!=='text'||! /\.m?js(?:[?#].*)?$/i.test(src))return m;
    used.add(f.name);
    if(/\btype\s*=\s*["']module["']/i.test(before+' '+after))return m;
-   return '<script'+before+after+'>'+scriptSafe(f.data)+'</script>';
+   return '<script'+before+after+'>'+scriptSafe(f.data)+'<\\/script>';
   });
   out=out.replace(/<link\b([^>]*?)\bhref=(["'])([^"']+\.css(?:[?#][^"']*)?)\2([^>]*)>/gi,(m,b,q,href,a)=>{
    const f=findFile(href);if(!f||f.t!=='text')return m;
@@ -304,7 +304,7 @@ function bundle(){
   const css=files.filter(f=>/\.css$/i.test(f.name)&&f.t==='text');
   const js=files.filter(f=>/\.js$/i.test(f.name)&&f.t==='text');
   css.concat(js).forEach(f=>used.add(f.name));
-  out='<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>html,body{margin:0;min-height:100%;background:#111;color:#fff;font-family:system-ui,sans-serif}canvas{display:block;max-width:100%}'+css.map(f=>rewriteCss(f.data)).join('\n')+'</style></head><body><canvas id="game" style="display:block;width:100%;height:100vh"></canvas>'+js.map(f=>'<script>'+scriptSafe(f.data)+'</script>').join('')+'</body></html>';
+  out='<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>html,body{margin:0;min-height:100%;background:#111;color:#fff;font-family:system-ui,sans-serif}canvas{display:block;max-width:100%}'+css.map(f=>rewriteCss(f.data)).join('\n')+'</style></head><body><canvas id="game" style="display:block;width:100%;height:100vh"></canvas>'+js.map(f=>'<script>'+scriptSafe(f.data)+'<\\/script>').join('')+'</body></html>';
  }
  // Nur echte HTML-/CSS-Dateiverweise ersetzen; niemals Dateinamen pauschal im JavaScript-Text austauschen.
  out=out.replace(/url\(\s*(['"]?)(?!data:|https?:|\/\/|#)([^)'"]+)\1\s*\)/gi,(m,q,path)=>{
