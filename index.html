@@ -205,7 +205,7 @@ async function init(){
  }else{
   showLoadError('Firebase konnte nicht geladen werden. Prüfe deine Internetverbindung oder lade die Seite später erneut.');
  }
- try{const r=await fetch('games.json',{cache:'no-store'});if(r.ok){const data=await r.json();stat=Array.isArray(data)?data:[];setG(dbg);render();}}catch(e){console.warn('games.json nicht verfügbar:',e);}
+ try{const r=await fetch('games.json',{cache:'no-store'});if(r.ok){const data=await r.json();stat=Array.isArray(data)?data:[];games=dbg.concat(loc,stat.filter(item=>!dbg.some(game=>game.id===item.id)));render();}}catch(e){console.warn('games.json nicht verfügbar:',e);}
  render();
 }
 function showLoadError(message){
