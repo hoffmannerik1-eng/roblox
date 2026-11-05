@@ -344,7 +344,7 @@ async function testUploadedGame(html){
  const report='<scr'+'ipt>\n'+
   "window.addEventListener('error',function(e){try{parent.postMessage({type:'BW_TEST_ERROR',message:e.message||'JavaScript-Fehler'},'*')}catch(_){}});\n"+
   "window.addEventListener('unhandledrejection',function(e){try{parent.postMessage({type:'BW_TEST_ERROR',message:String(e.reason||'Nicht behandelter Promise-Fehler')},'*')}catch(_){}});\n"+
-  '</scr'+'ipt>';\n const source=/<head\\b[^>]*>/i.test(html)?html.replace(/<head\\b[^>]*>/i,m=>m+report):report+html;
+  '</scr'+'ipt>';\n const source=/<head\b[^>]*>/i.test(html)?html.replace(/<head\b[^>]*>/i,m=>m+report):report+html;
  const listener=e=>{if(e.source===frame.contentWindow&&e.data&&e.data.type==='BW_TEST_ERROR')errors.push(String(e.data.message||'Unbekannter Fehler'));};
  window.addEventListener('message',listener);
  try{
