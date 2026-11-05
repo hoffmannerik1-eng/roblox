@@ -254,7 +254,7 @@ function drawUp(){const keep=['t','d','i','c'].map(k=>$('#'+k)?.value);
  ${files.map((f,i)=>`<div class="file">${f.t=='text'?'📄':'🖼️'}<b>${esc(f.name)}</b><small>${(f.size/1024).toFixed(1)} KB</small><button onclick="files.splice(${i},1);drawUp()">✕</button></div>`).join('')}
  <details style="margin:10px 0"><summary class="mu" style="cursor:pointer">➕ Skript direkt schreiben / einfügen</summary><input id="sn" placeholder="Dateiname z. B. game.js"><textarea id="sc" placeholder="Code hier einfügen…"></textarea><button class="sec" onclick="addS()">Skript hinzufügen</button></details>
  <label>Vorschaubild (optional)</label><input type="file" accept="image/*" onchange="setTh(this.files[0])">${thumb?`<div class="th" style="height:80px;width:140px;border-radius:12px;background:url(${thumb}) center/cover;margin-bottom:10px"></div>`:''}
- <button class="sec" onclick="prev()">👁 Vorschau</button> <button class="btn" onclick="upl()">🚀 Veröffentlichen</button> <span id="ok" class="${msg.startsWith('✓')?'ok':'err'}">${esc(msg)}</span>
+ <button class="sec" onclick="prev()">👁 Vorschau</button> <button class="btn" onclick="upl()" ${window.bwUploading?"disabled":""}>🧪 Testen &amp; veröffentlichen</button> <span id="ok" class="${msg.startsWith('✓')?'ok':'err'}">${esc(msg)}</span>
  <p class="mu">Hauptdatei ist die <b>index.html</b> (oder die erste HTML-Datei). Verweise auf deine .js-, .css- und Bilddateien werden automatisch eingebunden. Ohne HTML-Datei erzeuge ich eine Seite aus deinen Skripten. Max. ca. 250 KB gesamt.</p><div id="pv"></div></div>`;
  [['t',0],['d',1],['i',2],['c',3]].forEach(([k,n])=>{if(keep[n]!=null)$('#'+k).value=keep[n]});
  const dz=$('#dz');dz.ondragover=e=>{e.preventDefault();dz.classList.add('h')};dz.ondragleave=()=>dz.classList.remove('h');dz.ondrop=e=>{e.preventDefault();addF(e.dataTransfer.files)}}
@@ -335,10 +335,47 @@ window.addEventListener('message',e=>{
 });
 async function loadVoteInfo(id){try{const s=await db.collection(`games/${id}/votes`).get();const vals=s.docs.map(d=>d.data().value).filter(n=>Number.isInteger(n)&&n>=1&&n<=5);const avg=vals.length?(vals.reduce((a,b)=>a+b,0)/vals.length).toFixed(1):'–';const el=$('#voteInfo');if(el)el.textContent=`${avg} / 5 · ${vals.length} Bewertungen`;if(uid){const mine=await db.doc(`games/${id}/votes/${uid}`).get();if(mine.exists&&$('#voteSelect'))$('#voteSelect').value=mine.data().value;}}catch(e){const el=$('#voteInfo');if(el)el.textContent='Bewertungen nicht verfügbar';}}
 async function sendVote(){const n=Number($('#voteSelect')?.value||0);if(!uid||!cur){alert('Bitte kurz warten, bis Firebase verbunden ist.');return}if(n<1||n>5){alert('Bitte zuerst 1 bis 5 Sterne wählen.');return}try{await db.doc(`games/${cur}/votes/${uid}`).set({uid,value:n,updatedAt:firebase.firestore.FieldValue.serverTimestamp()});loadVoteInfo(cur); }catch(e){alert('Bewertung fehlgeschlagen: '+e.message)}}
-async function upl(){const t=$('#t').value.trim();if(!t||!files.length){msg='Titel und mindestens eine Datei nötig';return drawUp()}
- const html=bundle();if(html.length>250000){msg='Zu groß ('+Math.round(html.length/1024)+' KB). Max. 250 KB – Bilder verkleinern.';return drawUp()}
- const g={title:t,desc:$('#d').value.trim(),icon:$('#i').value||'🎮',cat:$('#c').value,html,thumb,author:av.name,ownerUid:uid,created:Date.now(),plays:0};
- try{if(!uid)throw new Error('Noch nicht mit Firebase verbunden. Bitte Seite neu laden.');await db.collection('games').add(g);files=[];thumb='';msg='';view='home';render()}catch(e){msg='Firebase-Upload fehlgeschlagen: '+(e.message||'');drawUp()}}
+async function testUploadedGame(html){
+ const frame=document.createElement('iframe');
+ frame.setAttribute('sandbox','allow-scripts');
+ frame.style.cssText='position:fixed;left:-10000px;top:-10000px;width:800px;height:600px;border:0';
+ document.body.appendChild(frame);
+ const errors=[];
+ const report=`<script>
+ window.addEventListener('error',function(e){try{parent.postMessage({type:'BW_TEST_ERROR',message:e.message||'JavaScript-Fehler'},'*')}catch(_){}});
+ window.addEventListener('unhandledrejection',function(e){try{parent.postMessage({type:'BW_TEST_ERROR',message:String(e.reason||'Nicht behandelter Promise-Fehler')},'*')}catch(_){}});
+ <\\/script>`;
+ const source=/<head\\b[^>]*>/i.test(html)?html.replace(/<head\\b[^>]*>/i,m=>m+report):report+html;
+ const listener=e=>{if(e.source===frame.contentWindow&&e.data&&e.data.type==='BW_TEST_ERROR')errors.push(String(e.data.message||'Unbekannter Fehler'));};
+ window.addEventListener('message',listener);
+ try{
+  frame.srcdoc=source;
+  await new Promise(resolve=>{let done=false;const finish=()=>{if(done)return;done=true;resolve()};frame.addEventListener('load',finish,{once:true});setTimeout(finish,3000);});
+  await new Promise(resolve=>setTimeout(resolve,1200));
+ }finally{
+  window.removeEventListener('message',listener);
+  frame.remove();
+ }
+ return [...new Set(errors)].slice(0,5);
+}
+async function upl(){
+ if(window.bwUploading)return;
+ const t=$('#t').value.trim();
+ if(!t||!files.length){msg='Titel und mindestens eine Datei nötig';return drawUp()}
+ const html=bundle();
+ if(html.length>250000){msg='Zu groß ('+Math.round(html.length/1024)+' KB). Max. 250 KB – Bilder verkleinern.';return drawUp()}
+ window.bwUploading=true;msg='🧪 Spiel wird getestet…';drawUp();
+ try{
+  const errors=await testUploadedGame(html);
+  if(errors.length){msg='❌ Test fehlgeschlagen: '+errors.join(' | ');return drawUp()}
+  msg='✓ Grundtest bestanden – wird veröffentlicht…';drawUp();
+  const g={title:t,desc:$('#d').value.trim(),icon:$('#i').value||'🎮',cat:$('#c').value,html,thumb,author:av.name,ownerUid:uid,created:Date.now(),plays:0};
+  if(!uid)throw new Error('Noch nicht mit Firebase verbunden. Bitte Seite neu laden.');
+  await db.collection('games').add(g);
+  files=[];thumb='';msg='';view='home';render();
+ }catch(e){msg='❌ Test oder Upload fehlgeschlagen: '+(e.message||'');drawUp()}
+ finally{window.bwUploading=false;}
+}
 async function countRealPlay(id){
  if(!db||!uid||!id)return;
  try{
