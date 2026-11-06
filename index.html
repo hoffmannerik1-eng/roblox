@@ -313,19 +313,23 @@ function watchOnlinePlayers(){
   }catch(e){const el=$('#onlinePlayers');if(el)el.textContent='Online-Liste konnte nicht geladen werden: '+e.message;}
  },e=>{const el=$('#onlinePlayers');if(el)el.textContent='Keine Berechtigung für die Online-Liste. Firestore-Regeln prüfen.';});
 }
+async function withTimeout(promise,ms,message){
+ let timer;
+ try{return await Promise.race([promise,new Promise((_,reject)=>{timer=setTimeout(()=>reject(new Error(message)),ms);})]);}
+ finally{clearTimeout(timer);}
+}
 async function init(){
  render();
  if(auth&&db){
   try{
-   await auth.signInAnonymously();
+   await withTimeout(auth.signInAnonymously(),8000,'Firebase-Anmeldung dauert zu lange.');
    uid=auth.currentUser.uid;
    adminUnlocked=sessionStorage.getItem('bw_admin_ok')==='1';
-   const profile=await db.doc(`users/${uid}`).get();
-   if(profile.exists)av={...av,...profile.data()};
-   if(!av.name||av.name==='Spieler'){
-    const entered=prompt('Wie möchtest du auf GAME ENGINE heißen?','Spieler');
-    if(entered&&entered.trim()){av.name=entered.trim().slice(0,20);await db.doc(`users/${uid}`).set({name:av.name},{merge:true});}
-   }
+   try{
+    const profile=await withTimeout(db.doc(`users/${uid}`).get(),6000,'Profil lädt zu lange.');
+    if(profile.exists)av={...av,...profile.data()};
+   }catch(profileError){console.warn('Profil konnte nicht geladen werden:',profileError);}
+   if(!av.name)av.name='Spieler';
    startPresence();
    db.collection('games').orderBy('created','desc').onSnapshot(s=>{
     setG(s.docs.map(d=>({id:d.id,...d.data()})));
