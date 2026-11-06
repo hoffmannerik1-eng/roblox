@@ -522,19 +522,19 @@ function bundle(){
   const f=findFile(value);if(!f)return m;
   used.add(f.name);
   if(/\.css(?:[?#].*)?$/i.test(value)&&attr.toLowerCase()==='href'&&f.t==='text')return '<style>'+rewriteCss(f.data)+'</style>';
-  if(/\.js(?:[?#].*)?$/i.test(value)&&attr.toLowerCase()==='src'&&f.t==='text')return '<script>'+scriptSafe(f.data)+'<\\/script>';
+  if(/\.js(?:[?#].*)?$/i.test(value)&&attr.toLowerCase()==='src'&&f.t==='text')return '<script>'+scriptSafe(f.data)+'<\/script>';
   return attr+'="'+asUri(f)+'"';
  });
  let htmlFile=files.find(f=>/^index\.html?$/i.test(f.name))||files.find(f=>/\.html?$/i.test(f.name));
  let out='';
  if(htmlFile){
   used.add(htmlFile.name);out=htmlFile.data;
-  out=out.replace(/<script\\b([^>]*?)\\bsrc=(["'])([^"']+)\\2([^>]*)>\\s*<\\/script>/gi,(m,before,q,src,after)=>{
-   const f=findFile(src);if(!f||f.t!=='text'||! /\\.m?js(?:[?#].*)?$/i.test(src))return m;
+  out=out.replace(/<script\b([^>]*?)\bsrc=(["'])([^"']+)\2([^>]*)>\s*<\/script>/gi,(m,before,q,src,after)=>{
+   const f=findFile(src);if(!f||f.t!=='text'||! /\.m?js(?:[?#].*)?$/i.test(src))return m;
    used.add(f.name);
    // Lokale klassische Skripte und ES-Module direkt einbetten, damit srcdoc keine verlorenen Dateipfade lädt.
-   const attrs=(before+' '+after).replace(/\\s+src=(["'])[^"']+\\1/i,'');
-   return '<script'+attrs+'>'+scriptSafe(f.data)+'<\\/script>';
+   const attrs=(before+' '+after).replace(/\s+src=(["'])[^"']+\1/i,'');
+   return '<script'+attrs+'>'+scriptSafe(f.data)+'<\/script>';
   });
   out=out.replace(/<link\b([^>]*?)\bhref=(["'])([^"']+\.css(?:[?#][^"']*)?)\2([^>]*)>/gi,(m,b,q,href,a)=>{
    const f=findFile(href);if(!f||f.t!=='text')return m;
