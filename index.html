@@ -211,7 +211,23 @@ body.game-open .ge-dock-toggle{top:60px;right:16px;transform:none;writing-mode:h
 
 </style></head><body>
 <header><span class="logo"><span class="logo-mark">G</span> GAME ENGINE</span><nav id="nav"></nav><span class="me" id="me"></span></header>
-<main id="app"></main>
+<main id="app"><div class="vn-home"><section class="vn-hero"><div class="vn-eyebrow"><span class="vn-live"></span> GAME ENGINE</div><h1>Deine Gaming-Plattform</h1><p>Die Startseite wird geladen. Falls dieser Hinweis stehen bleibt, ist beim Start der Anwendung ein Fehler aufgetreten.</p><button class="btn" type="button" onclick="location.reload()">Neu laden</button><p id="geStartupError" class="mu" style="margin-top:12px"></p></section></div></main>
+<script>
+window.__geRendered=false;
+window.addEventListener('error',function(e){
+ const el=document.getElementById('geStartupError');
+ if(el)el.textContent='Startfehler: '+(e.message||'JavaScript konnte nicht gestartet werden.');
+});
+window.addEventListener('unhandledrejection',function(e){
+ const el=document.getElementById('geStartupError');
+ if(el)el.textContent='Verbindungsfehler: '+String(e.reason?.message||e.reason||'Unbekannter Fehler');
+});
+setTimeout(function(){
+ if(window.__geRendered)return;
+ const el=document.getElementById('geStartupError');
+ if(el&&!el.textContent)el.textContent='Die Anwendung hat nicht gestartet. Bitte neu laden; falls es erneut passiert, ist ein JavaScript-Startfehler vorhanden.';
+},5000);
+</script>
 <button class="ge-dock-toggle" id="geDockToggle" onclick="toggleGameDock()">☰ MENÜ</button>
 <aside class="ge-dock" id="geDock" aria-label="GAME ENGINE Schnellmenü">
  <div class="ge-dock-head"><h3>⚡ Schnellzugriff</h3><button class="ge-dock-close" onclick="toggleGameDock(false)">✕</button></div>
@@ -468,7 +484,9 @@ function render(){
  ${[['skin','Haut'],['hair','Haare'],['shirt','Shirt'],['pants','Hose']].map(([k,t])=>`<label>${t}</label><div>${COLORS.map(c=>`<span class="sw ${av[k]==c?'on':''}" style="background:${c}" onclick="av.${k}='${c}';render()"></span>`).join('')}</div>`).join('')}
  <label>Hut</label><select onchange="av.hat=this.value;render()">${HATS.map(h=>`<option ${av.hat==h?'selected':''}>${h}</option>`).join('')}</select>
  <label>Gesicht</label><div>${FACES.map(f=>`<span class="sw ${av.face==f?'on':''}" style="background:var(--sf2);font-size:18px;text-align:center;line-height:26px;width:38px;height:38px" onclick="av.face='${f}';render()">${f}</span>`).join('')}</div><br><button class="btn" onclick="saveAv()">Speichern</button> <span id="ok" class="mu"></span></div></div>`;
- else drawUp()}
+ else drawUp();
+ window.__geRendered=true;
+}
 function drawUp(){const keep=['t','d','i','c'].map(k=>$('#'+k)?.value);
  $('#app').innerHTML=`<div class="panel"><h2 style="margin-top:0">🎮 Spiel erstellen</h2><div class="row"><div><label>Titel</label><input id="t" maxlength="40"><label>Beschreibung</label><input id="d" maxlength="120"></div><div><label>Icon (Emoji)</label><input id="i" value="🎮" maxlength="4"><label>Kategorie</label><select id="c">${CATS.map(c=>`<option>${c}</option>`).join('')}</select></div></div>
  <label>Dateien &amp; Skripte (.html .js .css .json .png .jpg .svg .mp3 …)</label>
