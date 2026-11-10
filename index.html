@@ -488,14 +488,15 @@ function render(){
  window.__geRendered=true;
 }
 function drawUp(){const keep=['t','d','i','c'].map(k=>$('#'+k)?.value);
- $('#app').innerHTML=`<div class="panel"><h2 style="margin-top:0">🎮 Spiel erstellen</h2><div class="row"><div><label>Titel</label><input id="t" maxlength="40"><label>Beschreibung</label><input id="d" maxlength="120"></div><div><label>Icon (Emoji)</label><input id="i" value="🎮" maxlength="4"><label>Kategorie</label><select id="c">${CATS.map(c=>`<option>${c}</option>`).join('')}</select></div></div>
+ $('#app').innerHTML=`<div class="panel"><h2 style="margin-top:0">${adminEditId?'⬆ Spiel-Update veröffentlichen':'🎮 Spiel erstellen'}</h2><div class="row"><div><label>Titel</label><input id="t" maxlength="40"><label>Beschreibung</label><input id="d" maxlength="120"></div><div><label>Icon (Emoji)</label><input id="i" value="🎮" maxlength="4"><label>Kategorie</label><select id="c">${CATS.map(c=>`<option>${c}</option>`).join('')}</select></div></div>
  <label>Dateien &amp; Skripte (.html .js .css .json .png .jpg .svg .mp3 …)</label>
  <div class="drop" id="dz" onclick="$('#fi').click()"><div style="font-size:34px">📁</div>Dateien hierher ziehen oder klicken<input type="file" id="fi" multiple hidden onchange="addF(this.files)"></div>
  ${files.map((f,i)=>`<div class="file">${f.t=='text'?'📄':'🖼️'}<b>${esc(f.name)}</b><small>${(f.size/1024).toFixed(1)} KB</small><button onclick="files.splice(${i},1);drawUp()">✕</button></div>`).join('')}
  <details style="margin:10px 0"><summary class="mu" style="cursor:pointer">➕ Skript direkt schreiben / einfügen</summary><input id="sn" placeholder="Dateiname z. B. game.js"><textarea id="sc" placeholder="Code hier einfügen…"></textarea><button class="sec" onclick="addS()">Skript hinzufügen</button></details>
  <label>Vorschaubild (optional)</label><input type="file" accept="image/*" onchange="setTh(this.files[0])">${thumb?`<div class="th" style="height:80px;width:140px;border-radius:12px;background:url(${thumb}) center/cover;margin-bottom:10px"></div>`:''}
- <button class="sec" onclick="prev()">👁 Vorschau</button> <button class="btn" onclick="upl()" ${window.bwUploading?"disabled":""}>🧪 Testen &amp; veröffentlichen</button> <span id="ok" class="${msg.startsWith('✓')?'ok':'err'}">${esc(msg)}</span>
+ <button class="sec" onclick="prev()">👁 Vorschau</button> <button class="btn" onclick="upl()" ${window.bwUploading?"disabled":""}>${adminEditId?'🧪 Update testen &amp; veröffentlichen':'🧪 Testen &amp; veröffentlichen'}</button> <span id="ok" class="${msg.startsWith('✓')?'ok':'err'}">${esc(msg)}</span>
  <p class="mu">Hauptdatei ist die <b>index.html</b> (oder die erste HTML-Datei). Verweise auf deine .js-, .css- und Bilddateien werden automatisch eingebunden. Ohne HTML-Datei erzeuge ich eine Seite aus deinen Skripten. Max. ca. 250 KB gesamt.</p><div id="pv"></div></div>`;
+ if(adminEditId){const g=games.find(x=>x.id===adminEditId);if(g&&!keep.some(v=>v!=null)){$('#t').value=g.title||'';$('#d').value=g.desc||'';$('#i').value=g.icon||'🎮';$('#c').value=g.cat||CATS[0];}}
  [['t',0],['d',1],['i',2],['c',3]].forEach(([k,n])=>{if(keep[n]!=null)$('#'+k).value=keep[n]});
  const dz=$('#dz');dz.ondragover=e=>{e.preventDefault();dz.classList.add('h')};dz.ondragleave=()=>dz.classList.remove('h');dz.ondrop=e=>{e.preventDefault();addF(e.dataTransfer.files)}}
 const rd=(f,u)=>new Promise(r=>{const x=new FileReader();x.onload=()=>r(x.result);u?x.readAsDataURL(f):x.readAsText(f)});
@@ -612,7 +613,7 @@ async function upl(){
   msg='✓ Grundtest bestanden – wird veröffentlicht…';drawUp();
   const g={title:t,desc:$('#d').value.trim(),icon:$('#i').value||'🎮',cat:$('#c').value,html,thumb,author:av.name,ownerUid:uid,created:Date.now(),plays:0};
   if(!uid)throw new Error('Noch nicht mit Firebase verbunden. Bitte Seite neu laden.');
-  await db.collection('games').add(g);
+  if(adminEditId){if(!adminUnlocked||!isAdminUser())throw new Error('Admin-Rechte fehlen.');const oldGame=games.find(x=>x.id===adminEditId);if(!oldGame)throw new Error('Spiel nicht gefunden.');await db.doc('games/'+adminEditId).update({title:g.title,desc:g.desc,icon:g.icon,cat:g.cat,html:g.html,thumb:g.thumb,updatedAt:Date.now(),version:(Number(oldGame.version)||1)+1,lastUpdatedBy:uid});adminEditId=null;}else{await db.collection('games').add(g);}
   files=[];thumb='';msg='';view='home';render();
  }catch(e){msg='❌ Test oder Upload fehlgeschlagen: '+(e.message||'');drawUp()}
  finally{window.bwUploading=false;}
