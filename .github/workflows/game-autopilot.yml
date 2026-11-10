@@ -1,0 +1,62 @@
+name: Game Autopilot
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: Spieltyp
+        required: true
+        default: auto
+        type: choice
+        options:
+          - auto
+          - 2d
+          - 3d
+  schedule:
+    - cron: "0 5 * * *"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: game-autopilot
+  cancel-in-progress: false
+
+jobs:
+  create-game:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Repository auschecken
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+
+      - name: Node.js einrichten
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Abhängigkeiten installieren
+        run: npm install
+
+      - name: Neues Spiel erstellen, testen und bewerten
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          MODEL: gpt-4.1
+          MIN_SCORE: "7"
+          MAX_TRIES: "3"
+        run: node autopilot/index.js "${{ inputs.mode || 'auto' }}"
+
+      - name: Geprüftes Spiel veröffentlichen
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add games.json generated-games/
+          if git diff --cached --quiet; then
+            echo "Keine Änderungen zum Veröffentlichen."
+            exit 0
+          fi
+          git commit -m "Game Autopilot: neues geprüftes Spiel"
+          git push
