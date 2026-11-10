@@ -367,7 +367,7 @@ async function init(){
  }else{
   showLoadError('Firebase konnte nicht geladen werden. Prüfe deine Internetverbindung oder lade die Seite später erneut.');
  }
- try{const r=await fetch('games.json',{cache:'no-store'});if(r.ok){const data=await r.json();stat=Array.isArray(data)?data:[];games=dbg.concat(loc,stat.filter(item=>!dbg.some(game=>game.id===item.id)));render();}}catch(e){console.warn('games.json nicht verfügbar:',e);}
+ try{const r=await fetch('games.json',{cache:'no-store'});if(r.ok){const data=await r.json();const entries=Array.isArray(data)?data:[];stat=await Promise.all(entries.map(async item=>{if(item.html||!item.htmlPath)return item;try{const gameResponse=await fetch(item.htmlPath,{cache:'no-store'});if(!gameResponse.ok)throw new Error('HTTP '+gameResponse.status);return {...item,html:await gameResponse.text()};}catch(error){console.warn('Autopilot-Spiel konnte nicht geladen werden:',item.title,error);return item;}}));games=dbg.concat(loc,stat.filter(item=>!dbg.some(game=>game.id===item.id)));render();}}catch(e){console.warn('games.json nicht verfügbar:',e);}
  render();
 }
 function showLoadError(message){
