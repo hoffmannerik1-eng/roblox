@@ -681,14 +681,14 @@ function validateGeneratedGame(game,mode){
  const h=String(game&&game.html||'');
  const checks=[
   ['HTML-Dokument',/<!doctype html/i.test(h)],
-  ['Canvas-Spielwelt',/<canvas\\b/i.test(h)],
+  ['Canvas-Spielwelt',/<canvas\b/i.test(h)],
   ['Start-Schaltfläche',/id=["']start["']/i.test(h)],
-  ['Spielschleife',/requestAnimationFrame\\s*\\(/i.test(h)],
-  ['Steuerung',/onkeydown|addEventListener\\s*\\(\\s*["']keydown/i.test(h)],
+  ['Spielschleife',/requestAnimationFrame\s*\(/i.test(h)],
+  ['Steuerung',/onkeydown|addEventListener\s*\(\s*["']keydown/i.test(h)],
   ['Punktestand oder Spielziel',/score|Kristalle|Punkte|Level geschafft/i.test(h)]
  ];
- if(mode==='3d')checks.push(['3D-WebGL',/getContext\\(["']webgl["']\\)/i.test(h)]);
- else checks.push(['2D-Canvas',/getContext\\(["']2d["']\\)/i.test(h)]);
+ if(mode==='3d')checks.push(['3D-WebGL',/getContext\(["']webgl["']\)/i.test(h)]);
+ else checks.push(['2D-Canvas',/getContext\(["']2d["']\)/i.test(h)]);
  const failed=checks.filter(x=>!x[1]).map(x=>x[0]);
  if(failed.length)throw new Error('Spiel ist unvollständig. Fehlende Bestandteile: '+failed.join(', '));
  return checks.map(x=>x[0]);
