@@ -673,15 +673,44 @@ function loop(t){let dt=Math.min(.035,(t-last)/1000||0);last=t;ground=H*.78;if(r
 x.clearRect(0,0,W,H);let gr=x.createLinearGradient(0,0,0,H);gr.addColorStop(0,'#1d3670');gr.addColorStop(1,'#11152e');x.fillStyle=gr;x.fillRect(0,0,W,H);for(let i=0;i<50;i++){x.fillStyle='#ffffff88';x.fillRect((i*137-cam*.08)%(W+20),25+(i*71)%(H*.55),2,2)}x.fillStyle='#273d68';x.fillRect(0,ground,W,H-ground);x.fillStyle='#48d6b0';x.fillRect(0,ground,W,7);coins.forEach(q=>{let sx=q.x-cam+p.x;if(!q.got&&sx>-30&&sx<W+30){x.fillStyle='#ffe36e';x.beginPath();x.arc(sx,q.y,11,0,7);x.fill()}});blocks.forEach(q=>{let sx=q.x-cam+p.x;if(sx>-40&&sx<W+40){x.fillStyle='#ff668c';x.fillRect(sx,ground-q.h,q.w,q.h)}});x.fillStyle='#917aff';x.shadowColor='#917aff';x.shadowBlur=18;x.fillRect(p.x,p.y,42,48);x.shadowBlur=0;x.fillStyle='white';x.fillRect(p.x+27,p.y+10,6,6);requestAnimationFrame(loop)}document.getElementById('start').onclick=begin;requestAnimationFrame(loop);
 </scr${'ipt'}></html>`.replaceAll('TITLE',title).replace('IDEA',safe);
  }
+ const polish='<style>body{background:#070a18!important}#hud{background:linear-gradient(180deg,rgba(4,7,20,.82),rgba(4,7,20,.08) 28%,rgba(4,7,20,.05) 72%,rgba(4,7,20,.75))!important}#top{gap:12px;align-items:center;text-shadow:0 2px 12px #000;font-size:clamp(14px,2vw,19px);letter-spacing:.04em}#top span{padding:9px 13px;border:1px solid #ffffff25;border-radius:12px;background:#080d20b8;backdrop-filter:blur(12px);box-shadow:0 8px 30px #0005}#panel{border:1px solid #9c8affaa!important;background:linear-gradient(145deg,#171b3df2,#090e20f2)!important;box-shadow:0 25px 80px #000b,0 0 45px #7565ff33!important;backdrop-filter:blur(18px);color:#fff}#panel h2{font-size:clamp(23px,4vw,32px);letter-spacing:-.04em;margin:4px 0 12px}#panel p{color:#c9c9e6;line-height:1.6}button{cursor:pointer;transition:transform .18s,filter .18s;box-shadow:0 8px 28px #765bff66;letter-spacing:.03em}button:hover{transform:translateY(-2px) scale(1.03);filter:brightness(1.18)}button:active{transform:scale(.97)}small{color:#e4e2ff;text-shadow:0 2px 8px #000;font-weight:650;letter-spacing:.02em}canvas{touch-action:none}</style>';
+ html=html.replace('</style>', '</style>'+polish);
  return {title,desc:safe,icon:mode==='3d'?'🧊':'🎮',category:mode.toUpperCase(),html:html};
+}
+function validateGeneratedGame(game,mode){
+ const h=String(game&&game.html||'');
+ const checks=[
+  ['HTML-Dokument',/<!doctype html/i.test(h)],
+  ['Canvas-Spielwelt',/<canvas\\b/i.test(h)],
+  ['Start-Schaltfläche',/id=["']start["']/i.test(h)],
+  ['Spielschleife',/requestAnimationFrame\\s*\\(/i.test(h)],
+  ['Steuerung',/onkeydown|addEventListener\\s*\\(\\s*["']keydown/i.test(h)],
+  ['Punktestand oder Spielziel',/score|Kristalle|Punkte|Level geschafft/i.test(h)]
+ ];
+ if(mode==='3d')checks.push(['3D-WebGL',/getContext\\(["']webgl["']\\)/i.test(h)]);
+ else checks.push(['2D-Canvas',/getContext\\(["']2d["']\\)/i.test(h)]);
+ const failed=checks.filter(x=>!x[1]).map(x=>x[0]);
+ if(failed.length)throw new Error('Spiel ist unvollständig. Fehlende Bestandteile: '+failed.join(', '));
+ return checks.map(x=>x[0]);
 }
 async function botGenerateGame(overrideIdea,automatic,forcedMode){
  if(!adminUnlocked||!isAdminUser()){alert('Nur Admins dürfen den Game Creator verwenden.');return;}if(botBusy)return;
  const idea=String(overrideIdea||$('#botIdea')?.value||'').trim(),mode=forcedMode||$('#botMode')?.value||'2d';if(!idea){botStatus('Bitte eine Spielidee eingeben.');return;}
- botBusy=true;const button=document.querySelector('[onclick="botGenerateGame()"]');if(button)button.disabled=true;botStatus('🛠️ Erstelle dein '+mode.toUpperCase()+'-Spiel direkt im Browser …');
- try{const game=makeLocalGame(idea,mode),errors=await testUploadedGame(game.html);if(errors.length)throw new Error('Test fehlgeschlagen: '+errors.join(' | '));botStatus('✓ Test bestanden. Veröffentlichung läuft …');await db.collection('games').add({title:game.title,desc:game.desc,icon:game.icon,cat:game.category,html:game.html,thumb:'',author:'GAME CREATOR OFFLINE',ownerUid:uid,created:Date.now(),plays:0,generatedBy:'offline-game-creator',version:1,mode:mode});if(automatic)localStorage.setItem('bw_bot_last',String(Date.now()));botStatus('✓ '+game.title+' ('+mode.toUpperCase()+') wurde veröffentlicht.');if(view==='admin')render();}
- catch(e){botStatus('❌ '+(e.message||'Unbekannter Fehler'));if(automatic)localStorage.setItem('bw_bot_last',String(Date.now()+3600000));}
- finally{botBusy=false;}
+ if(!db||!uid){botStatus('❌ Firebase ist noch nicht verbunden. Bitte Seite neu laden.');return;}
+ botBusy=true;const button=document.querySelector('[onclick="botGenerateGame()"]');if(button)button.disabled=true;botStatus('🛠️ Erstelle das Spiel und prüfe die Spielsysteme …');
+ try{
+  const game=makeLocalGame(idea,mode);
+  const checks=validateGeneratedGame(game,mode);
+  botStatus('🧪 Prüfe '+checks.length+' Bestandteile und starte den Fehler-Test …');
+  const errors=await testUploadedGame(game.html);
+  if(errors.length)throw new Error('Laufzeit-Test fehlgeschlagen: '+errors.join(' | '));
+  botStatus('✓ Alle Prüfungen bestanden. Das Spiel wird jetzt hochgeladen …');
+  const ref=await db.collection('games').add({title:game.title,desc:game.desc,icon:game.icon,cat:game.category,html:game.html,thumb:'',author:'GAME CREATOR OFFLINE',ownerUid:uid,created:Date.now(),plays:0,generatedBy:'offline-game-creator-v2',version:1,mode:mode,qualityChecks:checks,passedRuntimeTest:true});
+  if(automatic)localStorage.setItem('bw_bot_last',String(Date.now()));
+  botStatus('✓ '+game.title+' wurde erfolgreich geprüft und veröffentlicht. Spiel-ID: '+ref.id);
+  if(view==='admin')render();
+ }catch(e){botStatus('❌ Kein Upload: '+(e.message||'Unbekannter Fehler'));if(automatic)localStorage.setItem('bw_bot_last',String(Date.now()+3600000));}
+ finally{botBusy=false;if(button)button.disabled=false;}
 }
 function editGame(id){if(!adminUnlocked||!isAdminUser()){alert('Nur Admins dürfen Spiele aktualisieren.');return;}const g=games.find(x=>x.id===id);if(!g){alert('Spiel nicht gefunden.');return;}adminEditId=id;files=[];thumb=g.thumb||'';msg='';view='upload';render();}
 async function loadAdminPlayers(){if(!adminUnlocked||!isAdminUser())return;const el=$('#adminPlayers');if(!el)return;el.textContent='Lade Spieler…';try{const snap=await db.collection('users').get();if(!snap.size){el.textContent='Noch keine Spieler gefunden.';return;}el.innerHTML=snap.docs.map(doc=>{const d=doc.data()||{},name=esc(d.name||'Unbenannt'),banned=!!d.banned,until=Number(d.banUntil||0);const status=banned?(!until?'Dauerhaft gesperrt':until>Date.now()?'Gesperrt bis '+new Date(until).toLocaleString('de-DE'):'Sperre abgelaufen'):'Aktiv';return `<div class="admin-user"><div class="details"><b>${name}</b><br><small class="mu">${esc(doc.id)}</small><br><small class="${banned?'err':'ok'}">${status}</small></div><div class="actions"><select id="ban-${doc.id}" style="width:125px;margin:0"><option value="3600000">1 Stunde</option><option value="86400000">24 Stunden</option><option value="604800000">7 Tage</option><option value="2592000000">30 Tage</option><option value="0">Dauerhaft</option></select><button class="sec danger" onclick="banUser('${doc.id}')">Sperren</button>${banned?`<button class="sec" onclick="unbanUser('${doc.id}')">Entsperren</button>`:''}</div></div>`}).join('');}catch(e){el.textContent='Fehler beim Laden: '+e.message;}}
