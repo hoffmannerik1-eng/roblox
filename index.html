@@ -478,7 +478,7 @@ function render(){
  else if(view=='play'){const g=games.find(x=>x.id==cur);a.innerHTML=g?`<h2>${esc(g.icon)} ${esc(g.title)} <span class="tag">${esc(g.cat)}</span></h2><p class="mu">von ${esc(g.author)} — ${esc(g.desc)}</p><div class="panel" style="margin:12px 0"><b>⭐ Spiel bewerten</b><div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:8px"><select id="voteSelect" style="max-width:150px;margin:0"><option value="0">Bewertung wählen</option>${[1,2,3,4,5].map(n=>`<option value="${n}">${'★'.repeat(n)} (${n}/5)</option>`).join('')}</select><button class="sec" onclick="sendVote()">Bewerten</button><span id="voteInfo" class="mu">Bewertungen werden geladen…</span></div></div><div id="gameShell"><button id="gameExit" title="Spiel verlassen" aria-label="Spiel verlassen" onclick="exitGame()">↩</button><iframe sandbox="allow-scripts allow-forms allow-pointer-lock allow-modals allow-popups allow-popups-to-escape-sandbox" allow="autoplay; fullscreen; gamepad; clipboard-read; clipboard-write; webgl" allowfullscreen referrerpolicy="no-referrer" id="fr"></iframe></div><p class="mu" id="saveInfo">Spielstand wird automatisch in Firebase gespeichert, wenn das Spiel localStorage verwendet.</p>`:'Nicht gefunden';if(g){startGame(g);startGameChat(g.id)}}
  else if(view=='admin'){
   if(!adminUnlocked){a.innerHTML=`<div class="panel admin-lock"><div class="lock-icon">🔐</div><h2>Admin-Zugang</h2><p class="mu">Jeder Website-Benutzer kann den gemeinsamen Admin-Code eingeben.</p><input id="adminPass" type="password" placeholder="Admin-Passwort" onkeydown="if(event.key==='Enter')unlockAdmin()"><button class="btn" onclick="unlockAdmin()">Entsperren</button><p id="adminError" class="err"></p></div>`;}
-  else{a.innerHTML=`<div class="hero"><h1>🛡️ GAME ENGINE · ADMIN</h1><p>Verwalte Spieler, Spiele und den Server.</p><button class="btn w" onclick="lockAdmin()">Abmelden</button></div><div class="admin-grid"><div class="admin-stat"><span class="mu">Spiele</span><strong>${games.length}</strong></div><div class="admin-stat"><span class="mu">Admin-Modus</span><strong style="color:#4fd68c">Aktiv</strong></div><div class="admin-stat"><span class="mu">Deine UID</span><small style="word-break:break-all">${esc(uid||'—')}</small></div></div><div class="panel" style="margin-bottom:16px"><h2>🟢 Wer ist gerade online?</h2><p class="mu">Diese Liste ist nur im Adminbereich sichtbar. Ein Spieler gilt als online, wenn sein letzter Status höchstens zwei Minuten alt ist.</p><div class="admin-stat"><span class="mu">Aktuell online</span><strong id="onlineCount">–</strong></div><div id="onlinePlayers" class="mu" style="margin-top:12px">Online-Liste wird geladen…</div></div><div class="panel"><h2>👥 Spieler verwalten</h2><p class="mu">Sperren gelten dauerhaft oder bis zum gewählten Zeitpunkt.</p><button class="sec" onclick="loadAdminPlayers()">Spielerliste aktualisieren</button><div id="adminPlayers" class="mu" style="margin-top:12px">Lade Spieler…</div></div><div class="panel" style="margin-top:16px"><h2>🎮 Spiele verwalten</h2><div id="adminGames">${games.map(g=>`<div class="admin-user"><div class="details"><b>${esc(g.title)}</b><br><small class="mu">${esc(g.author||'Unbekannt')}</small></div><div class="actions"><button class="sec danger" onclick='editGame("${g.id}")'>⬆ Update hochladen</button><button class="sec danger" onclick="deleteGame('${g.id}')">Spiel löschen</button></div></div>`).join('')||'Keine Spiele vorhanden.'}</div></div><div class="panel" style="margin-top:16px"><h2>⚡ Server-Steuerung</h2><p class="mu">Meldet alle Spieler zurück zur Startseite. Es werden keine Konten gelöscht.</p><button class="btn danger" onclick="kickAllPlayers()">Alle Spieler aus Spielen werfen</button></div>`;loadAdminPlayers();watchOnlinePlayers();}
+  else{a.innerHTML=`<div class="hero"><h1>🛡️ GAME ENGINE · ADMIN</h1><p>Verwalte Spieler, Spiele und den Server.</p><button class="btn w" onclick="lockAdmin()">Abmelden</button></div><div class="admin-grid"><div class="admin-stat"><span class="mu">Spiele</span><strong>${games.length}</strong></div><div class="admin-stat"><span class="mu">Admin-Modus</span><strong style="color:#4fd68c">Aktiv</strong></div><div class="admin-stat"><span class="mu">Deine UID</span><small style="word-break:break-all">${esc(uid||'—')}</small></div></div><div class="panel" style="margin-bottom:16px"><h2>🟢 Wer ist gerade online?</h2><p class="mu">Diese Liste ist nur im Adminbereich sichtbar. Ein Spieler gilt als online, wenn sein letzter Status höchstens zwei Minuten alt ist.</p><div class="admin-stat"><span class="mu">Aktuell online</span><strong id="onlineCount">–</strong></div><div id="onlinePlayers" class="mu" style="margin-top:12px">Online-Liste wird geladen…</div></div><div class="panel"><h2>👥 Spieler verwalten</h2><p class="mu">Sperren gelten dauerhaft oder bis zum gewählten Zeitpunkt.</p><button class="sec" onclick="loadAdminPlayers()">Spielerliste aktualisieren</button><div id="adminPlayers" class="mu" style="margin-top:12px">Lade Spieler…</div></div><div class="panel" style="margin:16px 0"><h2>🤖 AI GAME CREATOR</h2><p class="mu">Nur im Adminbereich. Erstelle Spiele per Auftrag oder aktiviere den Autopiloten für höchstens ein neues Spiel alle 24 Stunden.</p><label>Cloudflare Worker URL</label><input id="botEndpoint" placeholder="https://dein-worker.dein-account.workers.dev"><label>Worker Admin-Geheimnis</label><input id="botSecret" type="password" placeholder="Dein ADMIN_SECRET"><label>Spielidee / Auftrag</label><textarea id="botIdea" style="min-height:105px" placeholder="Erstelle ein hochwertiges 2D-Abenteuer mit mehreren Welten, Bossen und Upgrades …"></textarea><div class="actions"><button class="btn" onclick="botGenerateGame()">✨ Spiel jetzt erstellen</button><label style="display:flex;align-items:center;gap:8px;text-transform:none"><input id="botAuto" type="checkbox" style="width:auto;margin:0" onchange="botToggleAuto(this.checked)"> AUTOPILOT aktivieren</label></div><p id="botStatus" class="mu" style="margin-bottom:0">Bereit. Der KI-Schlüssel bleibt sicher auf dem Worker.</p></div><div class="panel" style="margin-top:16px"><h2>🎮 Spiele verwalten</h2><div id="adminGames">${games.map(g=>`<div class="admin-user"><div class="details"><b>${esc(g.title)}</b><br><small class="mu">${esc(g.author||'Unbekannt')}</small></div><div class="actions"><button class="sec danger" onclick='editGame("${g.id}")'>⬆ Update hochladen</button><button class="sec danger" onclick="deleteGame('${g.id}')">Spiel löschen</button></div></div>`).join('')||'Keine Spiele vorhanden.'}</div></div><div class="panel" style="margin-top:16px"><h2>⚡ Server-Steuerung</h2><p class="mu">Meldet alle Spieler zurück zur Startseite. Es werden keine Konten gelöscht.</p><button class="btn danger" onclick="kickAllPlayers()">Alle Spieler aus Spielen werfen</button></div>`;loadAdminPlayers();watchOnlinePlayers();botInit();}
  }
  else if(view=='avatar')a.innerHTML=`<div class="row"><div class="panel"><div class="stage">${svg(av,170)}</div></div><div class="panel"><label>Name</label><input value="${esc(av.name)}" maxlength="20" oninput="av.name=this.value;$('#me span').textContent=this.value">
  ${[['skin','Haut'],['hair','Haare'],['shirt','Shirt'],['pants','Hose']].map(([k,t])=>`<label>${t}</label><div>${COLORS.map(c=>`<span class="sw ${av[k]==c?'on':''}" style="background:${c}" onclick="av.${k}='${c}';render()"></span>`).join('')}</div>`).join('')}
@@ -635,6 +635,67 @@ function exitGame(){stopGameChat();toggleGameDock(false);if(document.fullscreenE
 function go(v){if(v!=='play')stopGameChat();if(v!=='lobby')stopLobbyChat();if(v!=='admin')stopOnlineWatch();if(v!=='play'){document.body.classList.remove('game-open');if(document.fullscreenElement&&document.exitFullscreen)document.exitFullscreen().catch(()=>{});}view=v;render()}
 function unlockAdmin(){const error=$('#adminError');const v=$('#adminPass')?.value||'';if(v===ADMIN_PASSWORD){adminUnlocked=true;sessionStorage.setItem('bw_admin_ok','1');render()}else{if(error)error.textContent='Falsches Passwort.';}}
 function lockAdmin(){adminUnlocked=false;sessionStorage.removeItem('bw_admin_ok');stopOnlineWatch();view='home';render()}
+let botTimer=null,botBusy=false;
+function botInit(){
+ const ep=$('#botEndpoint'),sec=$('#botSecret'),auto=$('#botAuto');
+ if(ep)ep.value=localStorage.getItem('bw_bot_endpoint')||'';
+ if(sec)sec.value=sessionStorage.getItem('bw_bot_secret')||'';
+ if(auto)auto.checked=localStorage.getItem('bw_bot_auto')==='1';
+ if(botTimer){clearInterval(botTimer);botTimer=null;}
+ if(auto&&auto.checked){botTimer=setInterval(botAutoTick,60000);botAutoTick();}
+}
+function botStatus(t){const e=$('#botStatus');if(e)e.textContent=t;}
+function botToggleAuto(on){
+ if(!adminUnlocked||!isAdminUser()){alert('Nur im Adminbereich verfügbar.');return;}
+ const endpoint=$('#botEndpoint').value.trim(),secret=$('#botSecret').value.trim();
+ if(on&&(!endpoint||!secret)){alert('Bitte zuerst Worker-URL und Admin-Geheimnis eintragen.');$('#botAuto').checked=false;return;}
+ localStorage.setItem('bw_bot_endpoint',endpoint);sessionStorage.setItem('bw_bot_secret',secret);
+ localStorage.setItem('bw_bot_auto',on?'1':'0');
+ if(botTimer){clearInterval(botTimer);botTimer=null;}
+ if(on){botStatus('Autopilot aktiv: nächstes Spiel wird jetzt erstellt, danach maximal alle 24 Stunden.');botTimer=setInterval(botAutoTick,60000);botAutoTick();}
+ else botStatus('Autopilot pausiert.');
+}
+async function botAutoTick(){
+ if(!adminUnlocked||!isAdminUser()||localStorage.getItem('bw_bot_auto')!=='1'||botBusy)return;
+ const last=Number(localStorage.getItem('bw_bot_last')||0);
+ if(Date.now()-last<86400000)return;
+ const ideas=[
+ 'Ein vollständiges Arcade-Rennspiel mit mehreren Strecken, Boosts, Hindernissen und Bestzeiten.',
+ 'Ein originelles Tower-Defense-Spiel mit vielen Gegnerwellen, Türmen, Upgrades und Bossen.',
+ 'Ein spannendes 2D-Plattform-Abenteuer mit mehreren Welten, Geheimnissen und Endgegnern.',
+ 'Ein Weltraum-Survival-Spiel mit Raumschiff-Upgrades, Gegnern, Missionen und Bosskampf.',
+ 'Ein kreatives Puzzle-Abenteuer mit steigender Schwierigkeit, besonderen Mechaniken und Levelauswahl.',
+ 'Ein hochwertiges Roguelite-Arena-Spiel mit zufälligen Upgrades, Gegnerwellen und mehreren Arenen.'
+ ];
+ const day=Math.floor(Date.now()/86400000),idea=ideas[day%ideas.length];
+ await botGenerateGame(idea,true);
+}
+async function botGenerateGame(overrideIdea,automatic){
+ if(!adminUnlocked||!isAdminUser()){alert('Nur Admins dürfen den Game Creator verwenden.');return;}
+ if(botBusy)return;
+ const endpoint=$('#botEndpoint')?.value.trim()||localStorage.getItem('bw_bot_endpoint')||'';
+ const secret=$('#botSecret')?.value.trim()||sessionStorage.getItem('bw_bot_secret')||'';
+ const idea=String(overrideIdea||$('#botIdea')?.value||'').trim();
+ if(!endpoint||!secret||!idea){botStatus('Bitte Worker-URL, Admin-Geheimnis und eine Spielidee eintragen.');return;}
+ localStorage.setItem('bw_bot_endpoint',endpoint);sessionStorage.setItem('bw_bot_secret',secret);
+ botBusy=true;const button=document.querySelector('[onclick="botGenerateGame()"]');if(button)button.disabled=true;
+ botStatus('🤖 KI entwickelt das Spiel. Das kann etwas dauern …');
+ try{
+  const response=await fetch(endpoint,{method:'POST',headers:{'Content-Type':'application/json','X-Admin-Secret':secret},body:JSON.stringify({idea})});
+  const result=await response.json();if(!response.ok)throw new Error(result.error||'Worker-Fehler '+response.status);
+  const game=result.game||{},html=String(game.html||'');
+  if(!html||html.length>250000||!/<html|<!doctype/i.test(html))throw new Error('Die KI lieferte keine gültige HTML-Datei oder das Spiel ist zu groß.');
+  botStatus('🧪 Spiel wird getestet …');
+  const errors=await testUploadedGame(html);
+  if(errors.length)throw new Error('Test fehlgeschlagen: '+errors.join(' | '));
+  botStatus('✓ Test bestanden. Spiel wird veröffentlicht …');
+  await db.collection('games').add({title:String(game.title||'Neues KI-Spiel').slice(0,40),desc:String(game.desc||'Von GAME CREATOR BOT erstellt').slice(0,120),icon:String(game.icon||'🎮').slice(0,4),cat:String(game.category||'Alle'),html,thumb:'',author:'GAME CREATOR BOT',ownerUid:uid,created:Date.now(),plays:0,generatedBy:'admin-game-creator',version:1});
+  if(automatic)localStorage.setItem('bw_bot_last',String(Date.now()));
+  botStatus('✓ '+(game.title||'Spiel')+' wurde erfolgreich veröffentlicht.');
+  if(view==='admin')render();
+ }catch(e){botStatus('❌ '+(e.message||'Unbekannter Fehler'));if(automatic)localStorage.setItem('bw_bot_last',String(Date.now()+3600000));}
+ finally{botBusy=false;}
+}
 function editGame(id){if(!adminUnlocked||!isAdminUser()){alert('Nur Admins dürfen Spiele aktualisieren.');return;}const g=games.find(x=>x.id===id);if(!g){alert('Spiel nicht gefunden.');return;}adminEditId=id;files=[];thumb=g.thumb||'';msg='';view='upload';render();}
 async function loadAdminPlayers(){if(!adminUnlocked||!isAdminUser())return;const el=$('#adminPlayers');if(!el)return;el.textContent='Lade Spieler…';try{const snap=await db.collection('users').get();if(!snap.size){el.textContent='Noch keine Spieler gefunden.';return;}el.innerHTML=snap.docs.map(doc=>{const d=doc.data()||{},name=esc(d.name||'Unbenannt'),banned=!!d.banned,until=Number(d.banUntil||0);const status=banned?(!until?'Dauerhaft gesperrt':until>Date.now()?'Gesperrt bis '+new Date(until).toLocaleString('de-DE'):'Sperre abgelaufen'):'Aktiv';return `<div class="admin-user"><div class="details"><b>${name}</b><br><small class="mu">${esc(doc.id)}</small><br><small class="${banned?'err':'ok'}">${status}</small></div><div class="actions"><select id="ban-${doc.id}" style="width:125px;margin:0"><option value="3600000">1 Stunde</option><option value="86400000">24 Stunden</option><option value="604800000">7 Tage</option><option value="2592000000">30 Tage</option><option value="0">Dauerhaft</option></select><button class="sec danger" onclick="banUser('${doc.id}')">Sperren</button>${banned?`<button class="sec" onclick="unbanUser('${doc.id}')">Entsperren</button>`:''}</div></div>`}).join('');}catch(e){el.textContent='Fehler beim Laden: '+e.message;}}
 async function banUser(id){if(!adminUnlocked||!isAdminUser())return;const duration=Number($('#ban-'+id)?.value||0);const reason=prompt('Sperrgrund (optional):','Regelverstoß')||'';try{await db.doc(`users/${id}`).set({banned:true,banUntil:duration?Date.now()+duration:0,banReason:reason},{merge:true});loadAdminPlayers();}catch(e){alert('Sperren fehlgeschlagen: '+e.message)}}
