@@ -1,0 +1,11 @@
+{
+  "name": "game-engine-autopilot",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "autopilot": "node autopilot/index.js"
+  },
+  "dependencies": {
+    "puppeteer": "^24.10.2"
+  }
+}
