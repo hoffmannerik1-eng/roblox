@@ -611,8 +611,10 @@ async function upl(){
   const errors=await testUploadedGame(html);
   if(errors.length){msg='❌ Test fehlgeschlagen: '+errors.join(' | ');return drawUp()}
   msg='✓ Grundtest bestanden – wird veröffentlicht…';drawUp();
-  const g={title:t,desc:$('#d').value.trim(),icon:$('#i').value||'🎮',cat:$('#c').value,html,thumb,author:av.name,ownerUid:uid,created:Date.now(),plays:0};
-  if(!uid)throw new Error('Noch nicht mit Firebase verbunden. Bitte Seite neu laden.');
+  const currentUid=auth&&auth.currentUser?auth.currentUser.uid:null;
+  if(!currentUid)throw new Error('Firebase-Anmeldung fehlt. Bitte neu laden und erneut anmelden.');
+  uid=currentUid;
+  const g={title:t,desc:$('#d').value.trim(),icon:$('#i').value||'🎮',cat:$('#c').value,html,thumb,author:av.name,ownerUid:currentUid,created:Date.now(),plays:0};
   if(adminEditId){if(!adminUnlocked||!isAdminUser())throw new Error('Admin-Rechte fehlen.');const oldGame=games.find(x=>x.id===adminEditId);if(!oldGame)throw new Error('Spiel nicht gefunden.');await db.doc('games/'+adminEditId).update({title:g.title,desc:g.desc,icon:g.icon,cat:g.cat,html:g.html,thumb:g.thumb});adminEditId=null;}else{await db.collection('games').add(g);}
   files=[];thumb='';msg='';view='home';render();
  }catch(e){msg='❌ Test oder Upload fehlgeschlagen: '+(e.message||'');drawUp()}
